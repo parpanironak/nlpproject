@@ -23,12 +23,12 @@ def extract_sentences(filepath):
  
 
 # TODO: debug me
-# TODO: properly process tags: get rid of brackets and 
+# TODO: properly process tags: get rid of brackets and extract surface form/disambiguated form
 # TODO: store file offsets in memory as opposed to entire phrase (save some mem).
-#	Provide associated wrapper functions
+#    Provide associated wrapper functions
 # TODO: discuss previous TODO. Is it strictly necessary? Sure it's more optimized,
-#	but it comes at the cost of a lot of extra work, and the resulting
-#	optimizations may not be worth it
+#    but it comes at the cost of a lot of extra work, and the resulting
+#    optimizations may not be worth it
 def associate_tags(tags, sentences):
     dico = {}
     for sentence in sentences:
@@ -45,9 +45,9 @@ def print_dict_to_files(mydict):
             exit(1)
         else:
             os.makedirs(OUTPUT_DATA_DIR)
-            for disambiguated_form in mydict.keys():
-                with open(os.path.join(OUTPUT_DATA_DIR, disambiguated_form), "w") as f:
-                    pickle.dump(mydict[disambiguated_form], f)
+    for disambiguated_form in mydict.keys():
+        with open(os.path.join(OUTPUT_DATA_DIR, disambiguated_form), "w") as f:
+            pickle.dump(mydict[disambiguated_form], f)
 
 
 def main():
