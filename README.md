@@ -43,10 +43,15 @@ need to go through the entire corpus to determine the idf / need to go through t
 
 when running system use the reduced corpus and the idf values to create a vector and store it in memory and comapare to the vector of the generated for the input document 
 
------------------------
 Code conventions:
+-----------------------
+
 Each level of indentation is 4 spaces
+
 Variable names must obey the following regex: [a-z_][a-zA-Z0-9_]* No camlCasing
+
 Function names must obey the following regex: [a-z_][a-zA-Z0-9_]* No camlCasing
+
 Class names must obey the following regex: [A-Z][a-zA-Z0-9_]* with camlCasing
+
 File names must obey the following regex: [a-z_][a-zA-Z0-9_]* with camlCasing
