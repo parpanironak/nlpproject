@@ -17,10 +17,9 @@ def extractSentencesWithLinks2(tag, filePath):
 def extract(inputfile, tag, odir):
  
         entityCountMap = {};
-        #with open(inputfile) as f:
-        for i in range(1):
-        #    filePath = f.readline()
-            hmap = extractSentencesWithLinks(tag, "")
+        with open(inputfile) as f:
+            filePath = f.readline()
+            hmap = extractSentencesWithLinks(tag, filePath)
             for entity in hmap:
                 hmapValue = hmap[entity]
                 sentList = hmapValue[1]
