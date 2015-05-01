@@ -19,11 +19,11 @@ def removeStopWords(text):
 
 def createCountMap(wordList):
     hmap = {};
-    if not isinstance(word , list):
+    if not isinstance(wordList , list):
         return None
     for word in wordList:
         hmap[word] = hmap.get(word, 0) + 1.0
-    count = len(wordList) > 1 ? 1.0*len(wordList) : 1.0
+    count = 1.0*len(wordList) if len(wordList) > 1 else 1.0
     
     for word in hmap:
 		hmap[word] = hmap.get(word,0)/count;
@@ -46,9 +46,6 @@ def createTermFrequencyVector(tag, entity, odir):
 		return createCountMap(wordList)
 	
 	else:
-		return None
-		
-		
-	 
+		return None 
 
 

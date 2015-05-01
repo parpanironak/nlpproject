@@ -5,6 +5,7 @@ import xml.etree.cElementTree as ET
 import codecs
 import os.path
 
+
 def extractSentencesWithLinks(tag, filePath):
     return {"fish": (4,["r","o","n","a"]), "city":(3,["r","o","n","a","k"])}
 
