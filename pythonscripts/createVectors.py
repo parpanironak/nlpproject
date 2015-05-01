@@ -14,8 +14,8 @@ table = string.maketrans("","")
 def removePunctuations(s):
     return s.translate(table, string.punctuation)
 
-def removeStopWords(text)
-	return ''.join([word for word in text.split() if word not in cachedStopWords])
+def removeStopWords(text):
+	return ' '.join([word for word in text.split() if word not in cachedStopWords])
 
 def createCountMap(wordList):
     hmap = {};
@@ -27,9 +27,7 @@ def createCountMap(wordList):
 
 
 def createTermFrequencyVector(tag, entity, odir):
-
-	
-    entityFilePath = odir + "/corpus/" + tag + "/" + entity + ".txt"
+	entityFilePath = odir + "/corpus/" + tag + "/" + entity + ".txt"
 	if(os.path.isfile(entityFilePath)):	
 		pattern = re.compile(r"(?i)\[\[{0} \\| {1}\]\]".format(entity, tag))
 		wordList = []	
@@ -47,5 +45,5 @@ def createTermFrequencyVector(tag, entity, odir):
 		
 		
 	 
-print removeStopWords("ronak is strong");	
+
 
