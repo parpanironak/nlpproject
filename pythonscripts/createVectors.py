@@ -6,11 +6,16 @@ import codecs
 import os.path
 import re
 import string
+from nltk.corpus import stopwords
 
+cachedStopWords = stopwords.words("english")
 table = string.maketrans("","")
 
 def removePunctuations(s):
     return s.translate(table, string.punctuation)
+
+def removeStopWords(text)
+	return ''.join([word for word in text.split() if word not in cachedStopWords])
 
 def createCountMap(wordList):
 	hmap = {};
@@ -25,24 +30,25 @@ def createCountMap(wordList):
 			
 	return hmap
 
-def methodd(tag, entity, odir):
-	
-	termFrequencyVector = {}
-	pattern = r"(?i)\[\[%s \\| %s\]\]" % entity, tag
+def createTermFrequencyVector(tag, entity, odir):
+
 	entityFilePath = odir + "/corpus/" + tag + "/" + entity + ".txt"
 	if(os.path.isfile(entityFilePath)):	
+		pattern = r"(?i)\[\[%s \\| %s\]\]" % entity, tag
 		wordList = []	
 		with open(entityFilePath) as entityFile:
 			entityFileLine = entityFile.readline()
-			if entityFileLine == "<doc>" or entityFileLine == "</doc>" :
-				
+			if entityFileLine != "<doc>" and entityFileLine != "</doc>" :				
 				tempList = re.split(pattern, entityFileLine)
 				for temp in tempList:
-					partialWordList = removePunctuations(temp.strip()).split()
+					partialWordList = removeStopWords(removePunctuations(temp.strip())).split()
 					wordList = wordList + [x.lower() for x in partialWordList]
-		
+		return createCountMap(wordList)
+	
+	else:
+		return None
 		
 		
 	 
-	
+print removeStopWords("ronak is strong");	
 	
