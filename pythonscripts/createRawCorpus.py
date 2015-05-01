@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
  
 import sys, getopt
 import xml.etree.cElementTree as ET
