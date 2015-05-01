@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
 
 import sys, getopt
 import xml.etree.cElementTree as ET
@@ -18,23 +18,20 @@ def removeStopWords(text)
 	return ''.join([word for word in text.split() if word not in cachedStopWords])
 
 def createCountMap(wordList):
-	hmap = {};
-	if not isinstance(word , list)
-		return None
-		ema
-	for word in wordList:
-		if hamp.has_key(word):
-			hmap[word] = hmap[word] + 1
-		else:
-			hmap[word] = 1
-			
-	return hmap
+    hmap = {};
+    if not isinstance(word , list):
+        return None
+    for word in wordList:
+        hmap[word] = hmap.get(word, 0) + 1
+    return hmap
+
 
 def createTermFrequencyVector(tag, entity, odir):
 
-	entityFilePath = odir + "/corpus/" + tag + "/" + entity + ".txt"
+	
+    entityFilePath = odir + "/corpus/" + tag + "/" + entity + ".txt"
 	if(os.path.isfile(entityFilePath)):	
-		pattern = r"(?i)\[\[%s \\| %s\]\]" % entity, tag
+		pattern = re.compile(r"(?i)\[\[{0} \\| {1}\]\]".format(entity, tag))
 		wordList = []	
 		with open(entityFilePath) as entityFile:
 			entityFileLine = entityFile.readline()
@@ -51,4 +48,4 @@ def createTermFrequencyVector(tag, entity, odir):
 		
 	 
 print removeStopWords("ronak is strong");	
-	
+
