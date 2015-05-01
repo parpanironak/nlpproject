@@ -6,32 +6,49 @@ import codecs
 import os.path
 import re
 import string
+from nltk.corpus import stopwords
 
+cachedStopWords = stopwords.words("english")
 table = string.maketrans("","")
 
 def removePunctuations(s):
     return s.translate(table, string.punctuation)
 
+def removeStopWords(text):
+	return ' '.join([word for word in text.split() if word not in cachedStopWords])
+
 def createCountMap(wordList):
     hmap = {};
     if not isinstance(word , list):
         return None
-        ema
     for word in wordList:
-        hmap[word] = hmap.get(word, 0) + 1
+        hmap[word] = hmap.get(word, 0) + 1.0
+    count = len(wordList) > 1 ? 1.0*len(wordList) : 1.0
+    
+    for word in hmap:
+		hmap[word] = hmap.get(word,0)/count;
+    
     return hmap
 
-def methodd(tag, entity, odir):
-    termFrequencyVector = {}
-    pattern = re.compile(r"(?i)\[\[{0} \\| {1}\]\]".format(entity, tag))
-    entityFilePath = odir + "/corpus/" + tag + "/" + entity + ".txt"
 
-    if(os.path.isfile(entityFilePath)):
-        wordList = []
-        with open(entityFilePath) as entityFile:
-            entityFileLine = entityFile.readline()
-            if entityFileLine == "<doc>" or entityFileLine == "</doc>" :
-                tempList = pattern.split(entityFileLine)
-                for temp in tempList:
-                    partialWordList = removePunctuations(temp.strip()).split()
-                    wordList = wordList + [x.lower() for x in partialWordList]
+def createTermFrequencyVector(tag, entity, odir):
+	entityFilePath = odir + "/corpus/" + tag + "/" + entity + ".txt"
+	if(os.path.isfile(entityFilePath)):	
+		pattern = re.compile(r"(?i)\[\[{0} \\| {1}\]\]".format(entity, tag))
+		wordList = []	
+		with open(entityFilePath) as entityFile:
+			entityFileLine = entityFile.readline()
+			if entityFileLine != "<doc>" and entityFileLine != "</doc>" :				
+				tempList = re.split(pattern, entityFileLine)
+				for temp in tempList:
+					partialWordList = removeStopWords(removePunctuations(temp.strip())).split()
+					wordList = wordList + [x.lower() for x in partialWordList]
+		return createCountMap(wordList)
+	
+	else:
+		return None
+		
+		
+	 
+
+
