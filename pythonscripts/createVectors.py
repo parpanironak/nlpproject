@@ -22,7 +22,12 @@ def createCountMap(wordList):
     if not isinstance(word , list):
         return None
     for word in wordList:
-        hmap[word] = hmap.get(word, 0) + 1
+        hmap[word] = hmap.get(word, 0) + 1.0
+    count = len(wordList) > 1 ? 1.0*len(wordList) : 1.0
+    
+    for word in hmap:
+		hmap[word] = hmap.get(word,0)/count;
+    
     return hmap
 
 
