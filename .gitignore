@@ -46,3 +46,4 @@ Temporary Items
 Data/
 *.xml
 venv
+nltk_data

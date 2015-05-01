@@ -4,6 +4,15 @@ import os, sys, re
 
 INPUT_DATA_DIR = "./corpus_data"
 OUTPUT_DATA_DIR = "./tagger_data"
+NLTK_DATA_DIR = "./nltk_data"
+
+try:
+    os.environ['NLTK_DATA'] = NLTK_DATA_DIR
+    import nltk.data
+except ImportError:
+    sys.stderr.write("{0} depends on python {1} module. Run 'pip install {1}' from a shell.\n".format(sys.argv[0], "nltk"))
+    exit(1)
+
 
 
 class Entity:
@@ -34,14 +43,21 @@ extractSentencesWithLinks = extract_sentences_with_links
 
 def extract_sentences(filepath):
     try:
+        nltk.data.find('tokenizers/punkt.zip')
+    except LookupError:
+        nltk.download('punkt', download_dir = NLTK_DATA_DIR)
+    try:
         with open(filepath) as myfile:
             file_contents = myfile.readlines()
     except IOError, e:
         sys.stderr.write(str(e) + '\n')
         return []
     file_contents = "".join(file_contents)
-    # TODO: properly segment into phrases. Use nltk?
-    sentences = file_contents.split(".?!")
+    tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
+    tokenized_text = tokenizer.tokenize(file_contents)
+    sentences = []
+    for textblob in tokenized_text:
+        sentences.extend(textblob.split('\n\n'))
     return sentences
  
 
@@ -85,6 +101,11 @@ def print_dict_to_files(mydict, out_dir = OUTPUT_DATA_DIR, use_pickle = False):
 
 
 def main():
+    # test code to check if correct splitting on sentences
+    for sentence in extract_sentences(sys.argv[1]):
+        print sentence
+        print "******************************************"
+    exit(0)
     sentences = []
     create_dict([], sys.argv[1])
     #for arg in sys.argv[1:]:
