@@ -8,6 +8,7 @@ import re
 
 
 def extract(ip):
+	fileNames = codecs.open('FileNames','w',encoding='utf-8',errors='replace')
 	print "extract start"
 	if(not os.path.isfile(ip)):
 		print "no target file"
@@ -16,7 +17,7 @@ def extract(ip):
 	lineno = long(0);
 	docs = long(0);
 	with codecs.open(ip ,'r', encoding='utf-8',errors='replace') as wikifile:
-		title = "";
+		title = u'';
 		flag = True;
 		xmldoc = u'';
 		for line in wikifile:
@@ -25,7 +26,8 @@ def extract(ip):
 				xmldoc += line
 				xmldoc += u'\n'
 				matchObj = re.search(r'title=\".*?\"',line.strip())
-				title = extractTitle(matchObj.group(0))
+				fileNames.write(str(docs)+" "+matchObj.group(0)+"\n")
+				#title = extractTitle(matchObj.group(0))
 			elif not flag and not line.strip() == "</doc>":
 				xmldoc += u'\n'
 				xmldoc += line
@@ -33,11 +35,7 @@ def extract(ip):
 				xmldoc += line
 				xmldoc += u'\n'
 				flag = True;
-				#doc = xmldoc.encode('UTF-8', 'replace')
-				#elem = ET.fromstring(doc) #read fromstring xmldoc and store the root in elem
-				#xmldoc = u'';
-				#tree = ET.ElementTree(elem)
-				name = os.path.dirname(os.path.abspath(ip)) + "/Articles/" + title + u".xml"
+				name = os.path.dirname(os.path.abspath(ip)) + "/Articles/" + str(docs) + u".xml"
 				try:
 					fileObj = codecs.open(name, encoding='utf-8', errors='replace', mode="w")
 					fileObj.write(xmldoc)
@@ -51,10 +49,10 @@ def extract(ip):
 				# 	sys.exit(0);
 
 
-def extractTitle(title):
-	SplitResultList = title.split('"');
-	SplitResult = re.sub('[^a-zA-Z0-9_\s]','',SplitResultList[1])
-	return SplitResult
+# def extractTitle(title):
+# 	SplitResultList = title.split('"');
+# 	SplitResult = re.sub('[^\d\s\w]','SC',SplitResultList[1])
+# 	return SplitResult
 
 def main(argv):
 	print "start"
