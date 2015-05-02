@@ -12,7 +12,7 @@ OUTPUT_DATA_DIR = "./tagger_data"
 NLTK_DATA_DIR = "./nltk_data"
 
 "Tags to process"
-TAGS = ["Daisy", "autumn|fall"]
+TAGS = ["daisy", "autumn"]
 
 try:
     os.environ['NLTK_DATA'] = NLTK_DATA_DIR
@@ -48,12 +48,19 @@ class TagMatcher:
 
 
 def merge_dicts(dict1, dict2):
-    """Merges 2 dicts of Entity s
+    """Merges 2 dicts of Entity s. This function has the side-effect of
+    modifying dict1 (no new dictionary is created, dict1's key/value pairs
+    are updated).
 
-    dict merge_dict(dict dict1, dict dict2)"""
+    void merge_dict(dict dict1, dict dict2)
+    dict dict1: dictionary of entities. Keys are entities as strings, values are
+    Entity classes or lists of Entity classes in case of conflict.
+    dict dict2: dictionary of entities. Keys are entities as strings, values are
+    Entity classes or lists of Entity classes in case of conflict."""
+
     for key in dict1.keys():
-        my_entity = dict2.get(key, Entity(dict1[key].tag_name))
         if isinstance(dict1[key], list):
+            my_entity = dict2.get(key, Entity(dict1[key][0].tag_name))
             has_matched = False
 	    for entity in dict1[key]:
                 if entity.tag_name == my_entity.tag_name:
@@ -64,6 +71,7 @@ def merge_dicts(dict1, dict2):
                 sys.stderr.write("CONFLICT FOR ENTITY {0}\n".format(key))
                 dict1[k].append(my_entity)
         else:
+            my_entity = dict2.get(key, Entity(dict1[key].tag_name))
             if my_entity.tag_name != dict1[key].tag_name:
                 sys.stderr.write("CONFLICT FOR ENTITY {0}\n".format(key))
                 dict1[key] = [dict1[key], my_entity]
@@ -146,7 +154,6 @@ def extract_sentences(filepath):
     return sentences
 
 
-# TODO: !!!!! DEBUG !!!!!
 # TODO: store file offsets in memory as opposed to entire phrase (save some mem).
 #    Provide associated wrapper functions
 # TODO: discuss previous TODO. Is it strictly necessary? Sure it's more optimized,
@@ -165,17 +172,15 @@ def associate_tags(tags, sentences):
 
     IMPORTS: re"""
     sentence_dict = {}
-    tag_patterns = [ TagMatcher(tag, re.compile(r"\[\[\s*([^\[\]|]+)\s*\|\s*{0}\s*\]\]".format(re.escape(tag))))
+    tag_patterns = [ TagMatcher(tag, re.compile(r"\[\[\s*([^\[\]|]+)\s*\|\s*{0}\s*\]\]".format(re.escape(tag)), flags = re.I))
                      for tag in tags ]
     for sentence in sentences:
         for tag_pattern in tag_patterns:
-            match_obj = tag_pattern.pattern.search(sentence, re.I)
-            if match_obj is not None:
-                entities = match_obj.groups()
-                entity = entities[0].strip()
+            matches = tag_pattern.pattern.findall(sentence)
+	    for entity in matches:
                 sentence_dict[entity] = sentence_dict.get(entity, Entity(tag_pattern.tag_name))
                 sentence_dict[entity].sentences.append(sentence)
-                sentence_dict[entity].increment(len(entities))
+                sentence_dict[entity].increment()
     return sentence_dict
 
 
@@ -262,7 +267,8 @@ def print_dict_to_files(mydict, out_dir = OUTPUT_DATA_DIR, use_pickle = False):
 def main():
     tags = TAGS
 
-    my_dict = associate_tags(tags, extract_sentences("./testfile"))
+    sentences = extract_sentences("./testfile")
+    my_dict = associate_tags(tags, sentences)
     for stuff in my_dict.keys():
         print stuff, "|", my_dict[stuff]
     exit(0)
