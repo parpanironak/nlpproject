@@ -34,7 +34,7 @@ def createCountMap(wordList):
 def createTermFrequencyVector(tag, entity, odir):
 	entityFilePath = odir + "/corpus/" + tag + "/" + entity + ".txt"
 	if(os.path.isfile(entityFilePath)):	
-		pattern = re.compile(r"(?i)\[\[{0} \\| {1}\]\]".format(entity, tag))
+		pattern = re.compile(r"(?i)\[\[{0} \| {1}\]\]".format(entity, tag))
 		wordList = []	
 		with open(entityFilePath) as entityFile:
 			entityFileLine = entityFile.readline()
