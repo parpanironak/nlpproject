@@ -51,7 +51,28 @@ def merge_dicts(dict1, dict2):
     """Merges 2 dicts of Entity s
 
     dict merge_dict(dict dict1, dict dict2)"""
-    dict1.update(dict2)
+    for key in dict1.keys():
+        my_entity = dict2.get(key, Entity(dict1[key].tag_name))
+        if isinstance(dict1[key], list):
+            has_matched = False
+	    for entity in dict1[key]:
+                if entity.tag_name == my_entity.tag_name:
+                    has_matched = True
+                    entity.increment(my_entity.count)
+                    entity.sentences.extend(my_entity.sentences)
+            if not has_matched:
+                sys.stderr.write("CONFLICT FOR ENTITY {0}\n".format(key))
+                dict1[k].append(my_entity)
+        else:
+            if my_entity.tag_name != dict1[key].tag_name:
+                sys.stderr.write("CONFLICT FOR ENTITY {0}\n".format(key))
+                dict1[key] = [dict1[key], my_entity]
+            else:
+                dict1[key].increment(my_entity.count)
+                dict1[key].sentences.extend(my_entity.sentences)
+    for key in dict2.keys():
+        if not dict1.has_key(key):
+            dict1[key] = dict2[key]
 
 
 def create_dict(tag_list, corpus_path = INPUT_DATA_DIR):
@@ -63,7 +84,8 @@ def create_dict(tag_list, corpus_path = INPUT_DATA_DIR):
     str corpus_path: path to corpus root directory. Defaults to value of global
     variable INPUT_DATA_DIR
     return value: dict of all Entity s encountered in corpus. Keys are entities
-    as strings, values are Entity classes
+    as strings, values are Entity classes or lists of Entity classes in case of
+    conflict.
 
     IMPORTS: os
     GLOBAL CONSTANTS: INPUT_DATA_DIR"""
@@ -80,12 +102,13 @@ def create_dict(tag_list, corpus_path = INPUT_DATA_DIR):
 
 def extract_sentences_with_links(tag, filepath):
     """Build a dict of Entity s from a single file
-    
+
     dict extract_sentences_with_links(str tag, str filepath)
     str tag: name of tag to search for
     str filepath: path to file to process
     return value: dictionary of Entity s encountered in processed file. Keys are
-    entities as strings, values are Entity classes."""
+    entities as strings, values are Entity classes or lists of Entity classes in
+    case of conflict."""
 
     sentences = extract_sentences(filepath)
     return associate_tags([tag], sentences)
@@ -98,8 +121,8 @@ def extract_sentences(filepath):
     Returns empty list in case of error reading file.
 
     str[] extract_sentences(str filepath)
-    str filepath: path to file to process
-    return value: list of sentences in processed file
+    str filepath: path to file to process.
+    return value: list of sentences in processed file.
 
     IMPORTS: sys, nltk
     GLOBAL CONSTANTS: NLTK_DATA_DIR"""
@@ -137,7 +160,8 @@ def associate_tags(tags, sentences):
     str[] tags: list of tags to search for in sentences
     str[] sentences: list of sentences in which to search for tags
     return value: dictionary of Entity s encountered in corpus. Keys are
-    entities as strings, values are Entity classes.
+    entities as strings, values are Entity classes or lists of Entity classes in
+    case of conflict.
 
     IMPORTS: re"""
     sentence_dict = {}
@@ -191,25 +215,48 @@ def print_dict_to_files(mydict, out_dir = OUTPUT_DATA_DIR, use_pickle = False):
     if use_pickle:
         import cPickle as pickle
         for entity in mydict.keys():
-            filename = entity + '|' + mydict[entity].tag_name
-            filepath = os.path.join(out_dir, filename)
-            try:
-                with open(filepath, "w") as f:
-                    pickle.dump(mydict[entity], f)
-            except IOError, e:
-                sys.stderr.write("Error creating file\n")
-                exit(1)
+            if isinstance(mydict[entity], list):
+                for ent in mydict[entity]:
+                    filename = entity + '|' + ent.tag_name
+                    filepath = os.path.join(out_dir, filename)
+                    try:
+                        with open(filepath, "w") as f:
+                            pickle.dump(mydict[entity], f)
+                    except IOError, e:
+                        sys.stderr.write("Error creating file\n")
+                        exit(1)
+            else:
+                filename = entity + '|' + mydict[entity].tag_name
+                filepath = os.path.join(out_dir, filename)
+                try:
+                    with open(filepath, "w") as f:
+                        pickle.dump(mydict[entity], f)
+                except IOError, e:
+                    sys.stderr.write("Error creating file\n")
+                    exit(1)
     else:
         for entity in mydict.keys():
-            filename = entity + '|' + mydict[entity].tag_name
-            filepath = os.path.join(out_dir, filename)
-            try:
-                with open(filepath, "w") as f:
-                    for sentence in mydict[entity].sentences:
-                        f.write(sentence + '\n')
-            except IOError, e:
-                sys.stderr.write("Error creating file\n")
-                exit(1)
+            if isinstance(mydict[entity], list):
+                for ent in mydict[entity]:
+                    filename = entity + '|' + ent.tag_name
+                    filepath = os.path.join(out_dir, filename)
+                    try:
+                        with open(filepath, "w") as f:
+                            for sentence in ent.sentences:
+                                f.write(sentence + '\n')
+                    except IOError, e:
+                        sys.stderr.write("Error creating file\n")
+                        exit(1)
+            else:
+                filename = entity + '|' + mydict[entity].tag_name
+                filepath = os.path.join(out_dir, filename)
+                try:
+                    with open(filepath, "w") as f:
+                        for sentence in mydict[entity].sentences:
+                            f.write(sentence + '\n')
+                except IOError, e:
+                    sys.stderr.write("Error creating file\n")
+                    exit(1)
 
 
 def main():
@@ -220,15 +267,15 @@ def main():
         print stuff, "|", my_dict[stuff]
     exit(0)
 
-    ##### 
+    #####
     sentences = []
     my_dict = {}
     for arg in sys.argv:
-	if os.path.isdir:
+        if os.path.isdir:
             merge_dicts(my_dict, create_dict([], argv))
-	else:
+        else:
             file_dict = associate_tags(tags, extract_sentences(arg))
-	    merge_dicts(my_dict, file_dict)
+            merge_dicts(my_dict, file_dict)
 
 
 if __name__ == "__main__":
