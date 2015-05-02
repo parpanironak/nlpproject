@@ -24,9 +24,9 @@ except ImportError:
 
 class Entity:
     """Entity class.
-    str self.tag_name: tag associated to entity
-    int self.count: number of times entity appears
-    str[] self.sentences: list of sentences in which entity appears"""
+    str self.tag_name: tag associated to entity.
+    int self.count: number of times entity appears.
+    str[] self.sentences: list of sentences in which entity appears."""
 
     def __init__(self, tag_name, count = 0, sentences = []):
         self.tag_name = tag_name
@@ -35,11 +35,11 @@ class Entity:
     def increment(self, value = 1):
         self.count += value
     def __str__(self):
-        return "{0}: {1}".format(self.tag_name, self.count)
+        return "{0}: {1}|{2}".format(self.tag_name, self.count, self.sentences)
 
 class TagMatcher:
-    """Tag matching class
-    str self.tag_name: tag
+    """Tag matching class.
+    str self.tag_name: tag.
     re.pattern self.pattern: compiled pattern of tag of the form [[.*|TAG]]"""
 
     def __init__(self, tag_name, pattern):
@@ -62,7 +62,7 @@ def merge_dicts(dict1, dict2):
         if isinstance(dict1[key], list):
             my_entity = dict2.get(key, Entity(dict1[key][0].tag_name))
             has_matched = False
-	    for entity in dict1[key]:
+            for entity in dict1[key]:
                 if entity.tag_name == my_entity.tag_name:
                     has_matched = True
                     entity.increment(my_entity.count)
@@ -136,7 +136,7 @@ def extract_sentences(filepath):
     GLOBAL CONSTANTS: NLTK_DATA_DIR"""
 
     try:
-        nltk.data.find('tokenizers/punkt.zip')
+        nltk.data.find('tokenizers/punkt/english.pickle')
     except LookupError:
         nltk.download('punkt', download_dir = NLTK_DATA_DIR)
     try:
@@ -171,16 +171,39 @@ def associate_tags(tags, sentences):
     case of conflict.
 
     IMPORTS: re"""
+ 
     sentence_dict = {}
     tag_patterns = [ TagMatcher(tag, re.compile(r"\[\[\s*([^\[\]|]+)\s*\|\s*{0}\s*\]\]".format(re.escape(tag)), flags = re.I))
                      for tag in tags ]
     for sentence in sentences:
         for tag_pattern in tag_patterns:
             matches = tag_pattern.pattern.findall(sentence)
-	    for entity in matches:
+            matched_entities = {}
+            for entity in matches:
                 sentence_dict[entity] = sentence_dict.get(entity, Entity(tag_pattern.tag_name))
-                sentence_dict[entity].sentences.append(sentence)
-                sentence_dict[entity].increment()
+                if isinstance(sentence_dict[entity], list):
+                    has_matched = False
+                    for ent in sentence_dict[entity]:
+                        if ent.tag_name == tag_pattern.tag_name:
+                            has_matched = True
+                            entity.increment()
+                            if not entity in matched_entities:
+                                sentence_dict[entity].sentences.append(sentence)
+                                matched_entities[entity] = True
+                            entity.sentences.extend(my_entity.sentences)
+                    if not has_matched:
+                        sys.stderr.write("CONFLICT FOR ENTITY {0}\n".format(entity))
+                        sentence_dict[entity].append(Entity(tag_pattern.tag_name, sentence))
+                else:
+                    if sentence_dict[entity].tag_name != tag_pattern.tag_name:
+                        sys.stderr.write("CONFLICT FOR ENTITY {0}\n".format(entity))
+                        sentence_dict[entity] = [ sentence_dict[entity], Entity(tag_pattern.tag_name, sentence) ]
+                    else:
+                        sentence_dict[entity].increment()
+                        print entity, matched_entities
+                        if not entity in matched_entities:
+                            sentence_dict[entity].sentences.append(sentence)
+                            matched_entities[entity] = True
     return sentence_dict
 
 
@@ -267,13 +290,21 @@ def print_dict_to_files(mydict, out_dir = OUTPUT_DATA_DIR, use_pickle = False):
 def main():
     tags = TAGS
 
+    ##### TEST CODE #####
     sentences = extract_sentences("./testfile")
     my_dict = associate_tags(tags, sentences)
     for stuff in my_dict.keys():
-        print stuff, "|", my_dict[stuff]
+        print "**************************************"
+        print stuff, "|"
+        if isinstance(my_dict[stuff], list):
+            for ent in my_dict[stuff]:
+                print ent
+        else:
+            print my_dict[stuff]
+        print "**************************************"
     exit(0)
+    ##### END TEST CODE #####
 
-    #####
     sentences = []
     my_dict = {}
     for arg in sys.argv:
