@@ -74,15 +74,38 @@ def documentWordSet(sentList):
 
 def calculateIDF(ipDirectory):
     hmap = {}
+    totalFiles = 0
     for i in os.listdir(ipDirectory):
         if i.endswith(".xml"):
-            absFilePath = ipDirectory + "/" + i
-            rawXMLText = getRawTextFromXMLDocTag(absFilePath)
-            docWordSet = documentWordSet(extract_sentences(str(rawXMLText)))
-            for docWord in docWordSet:
-                hmap[docWord] = hmap.get(docWord, 0) + 1
-    return hmap
+			totalFiles = totalFiles + 1
+			absFilePath = ipDirectory + "/" + str(i)
+			rawXMLText = getRawTextFromXMLDocTag(absFilePath)
+			docWordSet = documentWordSet(extract_sentences(str(rawXMLText)))
+			for docWord in docWordSet:
+				hmap[docWord] = hmap.get(docWord, 0) + 1
+	return hmap
 
+def processIDF(hmap, totalFiles):
+    for docWord in hmap.keys():
+        hmap[docWord] = math.log(totalFiles/(hmap.get(docWord, 0)))
+	return hmap
 
-print calculateIDF(TEST_FILE)
+def writeToFile(hmap, odir):
 
+	outputFilePath = odir + "/idf/wordIDF.txt"
+	dir = os.path.dirname(outputFilePath)
+	if not os.path.exists(dir):
+		os.makedirs(dir)
+	outputFile = open(outputFilePath, "w")
+
+	for word in hmap:
+		outputFile.write(str(word))
+		outputFile.write('\t')
+		outputFile.write(str(hmap.get(word)))
+		outputFile.write('\n')
+
+	outputFile.close()
+
+hmap = { "ronak": 200, "parpani": 300 }
+
+writeToFile(hmap, "/home/rap450/nlp/check")
