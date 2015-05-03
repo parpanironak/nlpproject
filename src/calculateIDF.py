@@ -74,8 +74,10 @@ def documentWordSet(sentList):
 
 def calculateIDF(ipDirectory):
     hmap = {}
+    totalFiles = 0
     for i in os.listdir(ipDirectory):
         if i.endswith(".xml"):
+			totalFiles = totalFiles + 1
             absFilePath = ipDirectory + "/" + i
             rawXMLText = getRawTextFromXMLDocTag(absFilePath)
             docWordSet = documentWordSet(extract_sentences(str(rawXMLText)))
@@ -83,6 +85,11 @@ def calculateIDF(ipDirectory):
                 hmap[docWord] = hmap.get(docWord, 0) + 1
     return hmap
 
+def processIDF(hmap, totalFiles):
+	return None
+	
+def writeToFile(odir):
+	return None
 
 print calculateIDF(TEST_FILE)
 
