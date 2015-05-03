@@ -8,8 +8,30 @@ import re
 import string
 from nltk.corpus import stopwords
 
+
 cachedStopWords = stopwords.words("english")
 table = string.maketrans("","")
+
+NLTK_DATA_DIR = "./nltk_data"
+TEST_FILE = '/home/rap450/nlp/shellscripts'
+
+try:
+    os.environ['NLTK_DATA'] = NLTK_DATA_DIR
+    import nltk.data
+    try:
+        nltk.data.find('stopwords')
+    except LookupError:
+        nltk.download('stopwords', download_dir = NLTK_DATA_DIR)
+    from nltk.corpus import stopwords
+except ImportError:
+    sys.stderr.write("{0} depends on python {1} module. Run 'pip install {1}' from a shell.\n".format(sys.argv[0], "nltk"))
+    exit(1)
+
+tbl = dict.fromkeys(i for i in xrange(sys.maxunicode)
+                      if unicodedata.category(unichr(i)).startswith('P'))
+
+def removeUPunctuations(text):
+    return text.translate(tbl)
 
 def removePunctuations(s):
     return s.translate(table, string.punctuation)
@@ -41,7 +63,7 @@ def createTermFrequencyVector(tag, entity, odir):
 			if entityFileLine != "<doc>" and entityFileLine != "</doc>" :				
 				tempList = re.split(pattern, entityFileLine)
 				for temp in tempList:
-					partialWordList = removeStopWords(removePunctuations(temp.strip())).split()
+					partialWordList = removeStopWords(removeUPunctuations(unicode(temp.strip()))).split()
 					wordList = wordList + [x.lower() for x in partialWordList]
 		return createCountMap(wordList)
 	

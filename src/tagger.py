@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 
 import os, sys, re
-
+import codecs
 "Default directory for corpus"
 INPUT_DATA_DIR = "./corpus_data"
 
@@ -140,12 +140,20 @@ def extract_sentences(filepath):
     except LookupError:
         nltk.download('punkt', download_dir = NLTK_DATA_DIR)
     try:
-        with open(filepath) as myfile:
-            file_contents = myfile.readlines()
+		xmldoc = []
+		flag = True
+		with codecs.open(filepath ,'r', encoding='utf-8',errors='replace') as document:
+			for line in document:
+				if flag and (re.match(r'<doc.*?>',line.strip()) is not None):
+					flag = False
+				elif not flag and not line.strip() == "</doc>":
+					xmldoc.append(line)
+				elif not flag and line.strip() == "</doc>":
+					flag = True;
     except IOError, e:
         sys.stderr.write(str(e) + '\n')
         return []
-    file_contents = "".join(file_contents)
+    file_contents = "".join(xmldoc)
     tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
     tokenized_text = tokenizer.tokenize(file_contents)
     sentences = []
