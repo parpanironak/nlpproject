@@ -14,7 +14,7 @@ try:
     os.environ['NLTK_DATA'] = NLTK_DATA_DIR
     import nltk.data
     try:
-        nltk.data.find('stopwords')
+        nltk.data.find('corpora/stopwords/english')
     except LookupError:
         nltk.download('stopwords', download_dir = NLTK_DATA_DIR)
     from nltk.corpus import stopwords
@@ -98,7 +98,7 @@ def writeToFile(hmap, odir):
         if not os.path.exists(dirpath):
             os.makedirs(dirpath)
         outputFile = open(outputFilePath, "w")
-    except IOError, OSError, e:
+    except (IOError, OSError), e:
         sys.stderr.write(str(e) + '\n')
         exit(1)
 
