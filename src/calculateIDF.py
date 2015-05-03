@@ -35,21 +35,21 @@ def removeStopWords(text):
 
 
 def getRawTextFromXMLDocTag(absFilePath):
-    if os.path.isfile(absFilePath) and absFilePath.endswith(".xml"):
+    try:
         e = ET.parse(absFilePath).getroot()
         if e.tag == "doc":
             return e.text
         else:
-            print "no doc tag"
+            sys.stderr.write("No doc tag\n")
             return None
-    else:
-        print "doesnotexit"
+    except OSError, e:
+        sys.stderr.write(str(e) + '\n')
         return None
 
 
 def extract_sentences(rawText):
     try:
-        nltk.data.find('tokenizers/punkt.zip')
+        nltk.data.find('tokenizers/punkt/english.pickle')
     except LookupError:
         nltk.download('punkt', download_dir = NLTK_DATA_DIR)
     tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
@@ -77,35 +77,40 @@ def calculateIDF(ipDirectory):
     totalFiles = 0
     for i in os.listdir(ipDirectory):
         if i.endswith(".xml"):
-			totalFiles = totalFiles + 1
-			absFilePath = ipDirectory + "/" + str(i)
-			rawXMLText = getRawTextFromXMLDocTag(absFilePath)
-			docWordSet = documentWordSet(extract_sentences(str(rawXMLText)))
-			for docWord in docWordSet:
-				hmap[docWord] = hmap.get(docWord, 0) + 1
-	return hmap
+            totalFiles += 1
+            absFilePath = os.path.join(ipDirectory, str(i))
+            rawXMLText = getRawTextFromXMLDocTag(absFilePath)
+            docWordSet = documentWordSet(extract_sentences(str(rawXMLText)))
+            for docWord in docWordSet:
+                hmap[docWord] = hmap.get(docWord, 0) + 1
+    return hmap
 
 def processIDF(hmap, totalFiles):
     for docWord in hmap.keys():
         hmap[docWord] = math.log(totalFiles/(hmap.get(docWord, 0)))
-	return hmap
+    return hmap
+
 
 def writeToFile(hmap, odir):
+    outputFilePath = os.path.join(odir, "idf/wordIDF.txt")
+    dirpath = os.path.dirname(outputFilePath)
+    try:
+        if not os.path.exists(dirpath):
+            os.makedirs(dirpath)
+        outputFile = open(outputFilePath, "w")
+    except IOError, OSError, e:
+        sys.stderr.write(str(e) + '\n')
+        exit(1)
 
-	outputFilePath = odir + "/idf/wordIDF.txt"
-	dir = os.path.dirname(outputFilePath)
-	if not os.path.exists(dir):
-		os.makedirs(dir)
-	outputFile = open(outputFilePath, "w")
+    for k, v in hmap.items():
+        outputFile.write("{0}\t{1}\n".format(str(k), str(v)))
 
-	for word in hmap:
-		outputFile.write(str(word))
-		outputFile.write('\t')
-		outputFile.write(str(hmap.get(word)))
-		outputFile.write('\n')
+    outputFile.close()
 
-	outputFile.close()
 
-hmap = { "ronak": 200, "parpani": 300 }
+def main():
+    hmap = { "ronak": 200, "parpani": 300 }
+    writeToFile(hmap, "/home/rap450/nlp/check")
 
-writeToFile(hmap, "/home/rap450/nlp/check")
+if __name__ == '__main__':
+    main()
