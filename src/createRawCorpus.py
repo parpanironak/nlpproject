@@ -38,7 +38,7 @@ def extract(inputfile, tag, odir):
     dir = os.path.dirname(outputFilePath)
     if not os.path.exists(dir):
         os.makedirs(dir)
-    outPutFile = open(outputFilePath, "w")
+    outPutFile = codecs.open(outputFilePath,'w', encoding='utf-8',errors='replace')
 
     for entity in entityCountMap:
         counts = entityCountMap[entity];
@@ -50,8 +50,9 @@ def extract(inputfile, tag, odir):
         dir = os.path.dirname(outputFilePath)
         if not os.path.exists(dir):
             os.makedirs(dir)
-        outPutFile = open(outputFilePath, "a")
+        outPutFile = codecs.open(outputFilePath,'a', encoding='utf-8',errors='replace')
         outPutFile.write(tag + "\n")
+        outPutFile.close()
 
 
 def usage():
