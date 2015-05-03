@@ -7,23 +7,8 @@ import os.path
 import re
 import string
 
-NLTK_DATA_DIR = "./nltk_data"
 TEST_FILE = '/home/rap450/nlp/shellscripts'
 
-try:
-    os.environ['NLTK_DATA'] = NLTK_DATA_DIR
-    import nltk.data
-    try:
-        nltk.data.find('corpora/stopwords/english')
-    except LookupError:
-        nltk.download('stopwords', download_dir = NLTK_DATA_DIR)
-    from nltk.corpus import stopwords
-except ImportError:
-    sys.stderr.write("{0} depends on python {1} module. Run 'pip install {1}' from a shell.\n".format(sys.argv[0], "nltk"))
-    exit(1)
-
-
-cachedStopWords = stopwords.words("english")
 table = string.maketrans("","")
 
 def removePunctuations(s):
@@ -31,7 +16,7 @@ def removePunctuations(s):
 
 
 def removeStopWords(text):
-    return ' '.join([word for word in text.split() if word not in cachedStopWords])
+    return ' '.join([word for word in text.split() if word not in utils.stopwords])
 
 
 def getRawTextFromXMLDocTag(absFilePath):
@@ -45,19 +30,6 @@ def getRawTextFromXMLDocTag(absFilePath):
     except OSError, e:
         sys.stderr.write(str(e) + '\n')
         return None
-
-
-def extract_sentences(rawText):
-    try:
-        nltk.data.find('tokenizers/punkt/english.pickle')
-    except LookupError:
-        nltk.download('punkt', download_dir = NLTK_DATA_DIR)
-    tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
-    tokenized_text = tokenizer.tokenize(rawText)
-    sentences = []
-    for textblob in tokenized_text:
-        sentences.extend(textblob.split('\n\n'))
-    return sentences
 
 
 def documentWordSet(sentList):
@@ -80,10 +52,11 @@ def calculateIDF(ipDirectory):
             totalFiles += 1
             absFilePath = os.path.join(ipDirectory, str(i))
             rawXMLText = getRawTextFromXMLDocTag(absFilePath)
-            docWordSet = documentWordSet(extract_sentences(str(rawXMLText)))
+            docWordSet = documentWordSet(utils.extract_sentences(str(rawXMLText)))
             for docWord in docWordSet:
                 hmap[docWord] = hmap.get(docWord, 0) + 1
     return hmap
+
 
 def processIDF(hmap, totalFiles):
     for docWord in hmap.keys():

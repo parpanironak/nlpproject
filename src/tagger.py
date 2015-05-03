@@ -2,40 +2,11 @@
 
 import os, sys, re
 
-"Default directory for corpus"
-INPUT_DATA_DIR = "./corpus_data"
-
-"Default directory for writing files"
-OUTPUT_DATA_DIR = "./tagger_data"
-
-"Default directory for data downloaded by python nltk module"
-NLTK_DATA_DIR = "./nltk_data"
-
-"Tags to process"
-TAGS = ["daisy", "autumn"]
-
 try:
-    os.environ['NLTK_DATA'] = NLTK_DATA_DIR
-    import nltk.data
+    import utils, config
 except ImportError:
-    sys.stderr.write("{0} depends on python {1} module. Run 'pip install {1}' from a shell.\n".format(sys.argv[0], "nltk"))
+    sys.stderr.write("Error: missing file utils.py\n")
     exit(1)
-
-
-class Entity:
-    """Entity class.
-    str self.tag_name: tag associated to entity.
-    int self.count: number of times entity appears.
-    str[] self.sentences: list of sentences in which entity appears."""
-
-    def __init__(self, tag_name, count = 0, sentences = []):
-        self.tag_name = tag_name
-        self.count = count
-        self.sentences = sentences
-    def increment(self, value = 1):
-        self.count += value
-    def __str__(self):
-        return "{0}: {1}|{2}".format(self.tag_name, self.count, self.sentences)
 
 class TagMatcher:
     """Tag matching class.
@@ -60,7 +31,7 @@ def merge_dicts(dict1, dict2):
 
     for key in dict1.keys():
         if isinstance(dict1[key], list):
-            my_entity = dict2.get(key, Entity(dict1[key][0].tag_name))
+            my_entity = dict2.get(key, utils.Entity(dict1[key][0].tag_name))
             has_matched = False
             for entity in dict1[key]:
                 if entity.tag_name == my_entity.tag_name:
@@ -71,7 +42,7 @@ def merge_dicts(dict1, dict2):
                 sys.stderr.write("CONFLICT FOR ENTITY {0}\n".format(key))
                 dict1[k].append(my_entity)
         else:
-            my_entity = dict2.get(key, Entity(dict1[key].tag_name))
+            my_entity = dict2.get(key, utils.Entity(dict1[key].tag_name))
             if my_entity.tag_name != dict1[key].tag_name:
                 sys.stderr.write("CONFLICT FOR ENTITY {0}\n".format(key))
                 dict1[key] = [dict1[key], my_entity]
@@ -83,24 +54,24 @@ def merge_dicts(dict1, dict2):
             dict1[key] = dict2[key]
 
 
-def create_dict(tag_list, corpus_path = INPUT_DATA_DIR):
+def create_dict(tag_list, corpus_path = config.INPUT_DATA_DIR):
     """Builds dictionary of Entity s from all files located under corpus_path
     directory.
 
     dict create_dict(str[] tag_list, str corpus_path)
     str[] tag_list: list of tags to search for in corpus
-    str corpus_path: path to corpus root directory. Defaults to value of global
+    str corpus_path: path to corpus root directory. Defaults to value of config
     variable INPUT_DATA_DIR
     return value: dict of all Entity s encountered in corpus. Keys are entities
     as strings, values are Entity classes or lists of Entity classes in case of
     conflict.
 
-    IMPORTS: os
-    GLOBAL CONSTANTS: INPUT_DATA_DIR"""
+    IMPORTS: os, config
+    GLOBAL CONSTANTS: config.INPUT_DATA_DIR"""
 
     corpus_dict = {}
     def apply_to_file(filepath):
-        sentences = extract_sentences(filepath)
+        sentences = utils.extract_sentences(filepath)
         merge_dicts(corpus_dict, associate_tags(tag_list, sentences))
     apply_to_dir = lambda x: map(apply_to_file,
             [ os.path.join(x[0], filepath) for filename in x[2]])
@@ -108,50 +79,18 @@ def create_dict(tag_list, corpus_path = INPUT_DATA_DIR):
     return corpus_dict
 
 
-def extract_sentences_with_links(tag, filepath):
+def extract_sentences_with_links(tag_list, filepath):
     """Build a dict of Entity s from a single file
 
-    dict extract_sentences_with_links(str tag, str filepath)
-    str tag: name of tag to search for
+    dict extract_sentences_with_links(str[] tag_list, str filepath)
+    str[] tag: list of tags to search for
     str filepath: path to file to process
     return value: dictionary of Entity s encountered in processed file. Keys are
     entities as strings, values are Entity classes or lists of Entity classes in
     case of conflict."""
 
-    sentences = extract_sentences(filepath)
-    return associate_tags([tag], sentences)
-
-
-def extract_sentences(filepath):
-    """Uses NLTK module to segment text from file into english sentences.
-    Segmentation is only as good as what is provided by NLTK.
-    Text is also split along double-newlines to provide for titles/lists/other.
-    Returns empty list in case of error reading file.
-
-    str[] extract_sentences(str filepath)
-    str filepath: path to file to process.
-    return value: list of sentences in processed file.
-
-    IMPORTS: sys, nltk
-    GLOBAL CONSTANTS: NLTK_DATA_DIR"""
-
-    try:
-        nltk.data.find('tokenizers/punkt/english.pickle')
-    except LookupError:
-        nltk.download('punkt', download_dir = NLTK_DATA_DIR)
-    try:
-        with open(filepath) as myfile:
-            file_contents = myfile.readlines()
-    except IOError, e:
-        sys.stderr.write(str(e) + '\n')
-        return []
-    file_contents = "".join(file_contents)
-    tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
-    tokenized_text = tokenizer.tokenize(file_contents)
-    sentences = []
-    for textblob in tokenized_text:
-        sentences.extend(textblob.split('\n\n'))
-    return sentences
+    sentences = utils.extract_sentences(filepath)
+    return associate_tags(tag_list, sentences)
 
 
 # TODO: store file offsets in memory as opposed to entire phrase (save some mem).
@@ -159,12 +98,12 @@ def extract_sentences(filepath):
 # TODO: discuss previous TODO. Is it strictly necessary? Sure it's more optimized,
 #    but it comes at the cost of a lot of extra work, and the resulting
 #    optimizations may not be worth it
-def associate_tags(tags, sentences):
+def associate_tags(tag_list, sentences):
     """Search for presence of tags in sentences, extract entities
     and build dictionary of Entity s with obtained information.
 
-    dict associate_tags(str[] tags, str[] sentences)
-    str[] tags: list of tags to search for in sentences
+    dict associate_tags(str[] tag_list, str[] sentences)
+    str[] tag_list: list of tags to search for in sentences
     str[] sentences: list of sentences in which to search for tags
     return value: dictionary of Entity s encountered in corpus. Keys are
     entities as strings, values are Entity classes or lists of Entity classes in
@@ -174,13 +113,13 @@ def associate_tags(tags, sentences):
  
     sentence_dict = {}
     tag_patterns = [ TagMatcher(tag, re.compile(r"\[\[\s*([^\[\]|]+)\s*\|\s*{0}\s*\]\]".format(re.escape(tag)), flags = re.I))
-                     for tag in tags ]
+                     for tag in tag_list ]
     for sentence in sentences:
         for tag_pattern in tag_patterns:
             matches = tag_pattern.pattern.findall(sentence)
             matched_entities = {}
             for entity in matches:
-                sentence_dict[entity] = sentence_dict.get(entity, Entity(tag_pattern.tag_name))
+                sentence_dict[entity] = sentence_dict.get(entity, utils.Entity(tag_pattern.tag_name))
                 if isinstance(sentence_dict[entity], list):
                     has_matched = False
                     for ent in sentence_dict[entity]:
@@ -193,11 +132,11 @@ def associate_tags(tags, sentences):
                             entity.sentences.extend(my_entity.sentences)
                     if not has_matched:
                         sys.stderr.write("CONFLICT FOR ENTITY {0}\n".format(entity))
-                        sentence_dict[entity].append(Entity(tag_pattern.tag_name, sentence))
+                        sentence_dict[entity].append(utils.Entity(tag_pattern.tag_name, sentence))
                 else:
                     if sentence_dict[entity].tag_name != tag_pattern.tag_name:
                         sys.stderr.write("CONFLICT FOR ENTITY {0}\n".format(entity))
-                        sentence_dict[entity] = [ sentence_dict[entity], Entity(tag_pattern.tag_name, sentence) ]
+                        sentence_dict[entity] = [ sentence_dict[entity], utils.Entity(tag_pattern.tag_name, sentence) ]
                     else:
                         sentence_dict[entity].increment()
                         print entity, matched_entities
@@ -207,7 +146,7 @@ def associate_tags(tags, sentences):
     return sentence_dict
 
 
-def print_dict_to_files(mydict, out_dir = OUTPUT_DATA_DIR, use_pickle = False):
+def print_dict_to_files(mydict, out_dir = config.OUTPUT_DATA_DIR, use_pickle = False):
     """Dump data to disk. In the event of any error, print an error message and
     call exit().
     If using pickle, dump the complete dict. If dumping plaintext, only dump the
@@ -219,16 +158,16 @@ def print_dict_to_files(mydict, out_dir = OUTPUT_DATA_DIR, use_pickle = False):
     void print_dict_to_files(dict mydict, str out_dir, bool use_pickle)
     dict mydict: dictionary of Entity s.
     str out_dir: path to directory in which to create the files. Defaults to
-    value of global variable OUTPUT_DATA_DIR
+    value of config variable config.OUTPUT_DATA_DIR
     bool use_pickle: indicates whether to use pickle or to dump plaintext.
     Defaults to False (dump plaintext)
 
-    IMPORTS: os, sys
+    IMPORTS: os, sys, config
         NOTE: There is no need to manually import pickle, as the function takes care
         of doing so if needed.
         WARNING: when using this function in python3, 'import cPickle as pickle'
         will fail. Replace by 'import pickle'
-    GLOBAL CONSTANTS: OUTPUT_DATA_DIR"""
+    GLOBAL CONSTANTS: config.OUTPUT_DATA_DIR"""
 
     if not os.path.isdir(out_dir):
         if os.path.exists(out_dir):
@@ -288,10 +227,10 @@ def print_dict_to_files(mydict, out_dir = OUTPUT_DATA_DIR, use_pickle = False):
 
 
 def main():
-    tags = TAGS
+    tags = config.TAGS
 
     ##### TEST CODE #####
-    sentences = extract_sentences("./testfile")
+    sentences = utils.extract_sentences("./testfile")
     my_dict = associate_tags(tags, sentences)
     for stuff in my_dict.keys():
         print "**************************************"
@@ -305,13 +244,12 @@ def main():
     exit(0)
     ##### END TEST CODE #####
 
-    sentences = []
     my_dict = {}
     for arg in sys.argv:
         if os.path.isdir:
             merge_dicts(my_dict, create_dict([], argv))
         else:
-            file_dict = associate_tags(tags, extract_sentences(arg))
+            file_dict = associate_tags(tags, utils.extract_sentences(arg))
             merge_dicts(my_dict, file_dict)
 
 
