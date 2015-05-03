@@ -1,0 +1,14 @@
+The goal of our project is to make possible the efficient wikification of
+arbitrary input documents: for each mention (word, name, term), we will attempt
+to find the correct wikipedia entry and link to it. Our project will of course
+address the problem of synonyms: in the case where a word has 2 or more possible
+meanings, we will attempt to disambiguate between them and select the correct
+one.
+Disambiguating between meanings will be achieved through several techniques: we
+intend to use context to differenciate between meanings. We will be choosing the
+meaning that makes the most sense in the context we are working with. To
+determine meanings, we will be working with the Ochiai coefficient at the level
+of the whole document, the paragraph and the phrase itself. We will also be
+trying to take into account the coherence of disambiguations across the entire
+document. Finally, we will attempt to maximize the coherence between
+disambiguated terms.
