@@ -86,25 +86,26 @@ def calculateIDF(ipDirectory):
 	return hmap
 
 def processIDF(hmap, totalFiles):
-	return None
-	
+    for docWord in hmap.keys():
+        hmap[docWord] = math.log(totalFiles/(hmap.get(docWord, 0)))
+	return hmap
+
 def writeToFile(hmap, odir):
-	
+
 	outputFilePath = odir + "/idf/wordIDF.txt"
 	dir = os.path.dirname(outputFilePath)
 	if not os.path.exists(dir):
 		os.makedirs(dir)
 	outputFile = open(outputFilePath, "w")
-	
+
 	for word in hmap:
 		outputFile.write(str(word))
 		outputFile.write('\t')
 		outputFile.write(str(hmap.get(word)))
 		outputFile.write('\n')
-		
+
 	outputFile.close()
 
 hmap = { "ronak": 200, "parpani": 300 }
 
 writeToFile(hmap, "/home/rap450/nlp/check")
-
