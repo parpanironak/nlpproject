@@ -101,7 +101,7 @@ def extract_sentences_with_links(tag, filepath):
     entities as strings, values are Entity classes or lists of Entity classes in
     case of conflict."""
 
-    sentences = extract_sentences(filepath)
+    sentences = utils.extract_sentences(filepath)
     return associate_tags([tag], sentences)
 
 

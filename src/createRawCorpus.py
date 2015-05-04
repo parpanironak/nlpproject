@@ -4,7 +4,7 @@ import sys, getopt
 import xml.etree.cElementTree as ET
 import codecs
 import os.path
-from tagger import Entity
+from utils import Entity
 from tagger import extract_sentences_with_links
 
 
@@ -16,7 +16,7 @@ def extract(inputfile, tag, odir):
 			hmap = extract_sentences_with_links(tag, filePath)
 			for entity in hmap:
 				hmapValue = hmap[entity]
-				
+
 				count = hmapValue.count
 				sentList = hmapValue.sentences
 				old = entityCountMap.get(entity, (0, 0))
@@ -25,7 +25,7 @@ def extract(inputfile, tag, odir):
 				outputFilePath = odir + "/corpus/" + tag + "/" + entity + ".txt"
 				dir = os.path.dirname(outputFilePath)
 				if not os.path.exists(dir):
-					os.makedirs(dir)				
+					os.makedirs(dir)
 				outPutFile = codecs.open(outputFilePath,'a', encoding='utf-8',errors='replace')
 				outPutFile.write(u"<doc>\n")
 				for sent in sentList:
@@ -87,5 +87,3 @@ def main():
 
 if __name__ == "__main__":
    main()
-
-

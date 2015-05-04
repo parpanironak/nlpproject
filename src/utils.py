@@ -1,6 +1,7 @@
 #!/usr/bin/env python2
-
+import codecs
 import os, sys
+from bs4 import BeautifulSoup
 try:
     import config
 except ImportError:
@@ -39,28 +40,40 @@ class Entity:
 
 def extract_sentences(filepath):
     """Uses NLTK module to segment text from file into english sentences.
-    Segmentation is only as good as what is provided by NLTK.
-    Text is also split along double-newlines to provide for titles/lists/other.
-    Returns empty list in case of error reading file.
-
-    str[] extract_sentences(str filepath)
-    str filepath: path to file to process.
-    return value: list of sentences in processed file.
-
-    IMPORTS: sys, nltk, config
-    GLOBAL CONSTANTS: config.NLTK_DATA_DIR"""
-
+        Segmentation is only as good as what is provided by NLTK.
+        Text is also split along double-newlines to provide for titles/lists/other.
+        Returns empty list in case of error reading file.
+        
+        str[] extract_sentences(str filepath)
+        str filepath: path to file to process.
+        return value: list of sentences in processed file.
+        
+        IMPORTS: sys, nltk, config
+        GLOBAL CONSTANTS: config.NLTK_DATA_DIR"""
+    
     try:
         nltk.data.find('tokenizers/punkt/english.pickle')
     except LookupError:
         nltk.download('punkt', download_dir = config.NLTK_DATA_DIR)
+    #    xmldoc = []
+    #    flag = True
+    #    open_doc_tag = re.compile(r'<doc[^>]*>')
     try:
-        with open(filepath) as myfile:
-            file_contents = myfile.readlines()
+        with codecs.open(filepath,'r', encoding='utf-8', errors='replace') as document:
+            xmldoc = BeautifulSoup(document).text
+    #            for line in document:
+#                line = line.strip()
+#                if flag and (open_doc_tag.match(line) is not None):
+#                    flag = False
+#                elif not flag:
+#                    if line != "</doc>":
+#                        xmldoc.append(line)
+#                    else:
+#                        flag = True;
     except IOError, e:
         sys.stderr.write(str(e) + '\n')
         return []
-    file_contents = "".join(file_contents)
+    file_contents = "".join(xmldoc)
     tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
     tokenized_text = tokenizer.tokenize(file_contents)
     sentences = []
