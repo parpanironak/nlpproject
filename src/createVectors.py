@@ -99,7 +99,7 @@ def mainMethod(odir):
         with open(ipfile, 'r') as f:
             for line in f:
                 print line
-                tokens = line.split()
+                tokens = line.rsplit("\t", 3)
                 entity = tokens[0]
                 acount = int(tokens[1])
                 
