@@ -28,10 +28,12 @@ class Entity:
     int self.count: number of times entity appears.
     str[] self.sentences: list of sentences in which entity appears."""
 
-    def __init__(self, tag_name):
+    def __init__(self, tag_name, count = 0, sentences = None):
         self.tag_name = tag_name
-        self.count = 0
-        self.sentences = []
+        self.count = count
+        self.sentences = sentences
+        if self.sentences == None:
+            self.sentences = []
 
     def increment(self, value = 1):
         self.count += value
@@ -49,28 +51,16 @@ def extract_sentences(filepath):
         str filepath: path to file to process.
         return value: list of sentences in processed file.
         
-        IMPORTS: sys, nltk, config
+        IMPORTS: sys, nltk, config, BeautifulSoup from bs4
         GLOBAL CONSTANTS: config.NLTK_DATA_DIR"""
     
     try:
         nltk.data.find('tokenizers/punkt/english.pickle')
     except LookupError:
         nltk.download('punkt', download_dir = config.NLTK_DATA_DIR)
-    #    xmldoc = []
-    #    flag = True
-    #    open_doc_tag = re.compile(r'<doc[^>]*>')
     try:
         with codecs.open(filepath,'r', encoding='utf-8', errors='replace') as document:
             xmldoc = BeautifulSoup(document).text
-    #            for line in document:
-#                line = line.strip()
-#                if flag and (open_doc_tag.match(line) is not None):
-#                    flag = False
-#                elif not flag:
-#                    if line != "</doc>":
-#                        xmldoc.append(line)
-#                    else:
-#                        flag = True;
     except IOError, e:
         sys.stderr.write(str(e) + '\n')
         return []
@@ -81,5 +71,3 @@ def extract_sentences(filepath):
     for textblob in tokenized_text:
         sentences.extend(textblob.split('\n\n'))
     return sentences
-
-
