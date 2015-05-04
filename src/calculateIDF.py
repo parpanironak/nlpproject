@@ -120,18 +120,6 @@ def normalizeIDF(hmap, totalFiles):
 def usage():
     sys.stderr.write('createRawCorpus.py -i <inputdirectory> -o <outputdirectory>\n')
 
-    hmap = {}
-    totalFiles = 0
-    for i in os.listdir(ipDirectory):
-        if i.endswith(".xml"):
-            totalFiles += 1
-            absFilePath = os.path.join(ipDirectory, str(i))
-            rawXMLText = getRawTextFromXMLDocTag(absFilePath)
-            docWordSet = documentWordSet(utils.extract_sentences(str(rawXMLText)))
-            for docWord in docWordSet:
-                hmap[docWord] = hmap.get(docWord, 0) + 1
-    return hmap
-
 <<<<<<< HEAD
 
 def processIDF(hmap, totalFiles):

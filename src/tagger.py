@@ -143,7 +143,6 @@ def extract_sentences(filepath):
     for textblob in tokenized_text:
         sentences.extend(textblob.split('\n\n'))
     return sentences
->>>>>>> 8ca28a388519553e917ff4dd0b2ac9b42378aaa2
 
 
 # TODO: store file offsets in memory as opposed to entire phrase (save some mem).
