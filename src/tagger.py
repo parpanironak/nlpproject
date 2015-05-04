@@ -29,7 +29,6 @@ class TagMatcher:
         self.tag_name = tag_name
         self.pattern = pattern
 
-
 def merge_dicts(dict1, dict2):
     """Merges 2 dicts of Entity s. This function has the side-effect of
     modifying dict1 (no new dictionary is created, dict1's key/value pairs
@@ -103,7 +102,6 @@ def extract_sentences_with_links(tag, filepath):
 
     sentences = utils.extract_sentences(filepath)
     return associate_tags([tag], sentences)
-
 
 def extract_sentences(filepath):
     """Uses NLTK module to segment text from file into english sentences.
@@ -191,7 +189,6 @@ def associate_tags(tag_list, sentences):
                         sentence_dict[entity] = [ sentence_dict[entity], utils.Entity(tag_pattern.tag_name, sentence) ]
                     else:
                         sentence_dict[entity].increment()
-                        print entity, matched_entities
                         if not entity in matched_entities:
                             sentence_dict[entity].sentences.append(sentence)
                             matched_entities[entity] = True
@@ -276,6 +273,17 @@ def print_dict_to_files(mydict, out_dir = config.OUTPUT_DATA_DIR, use_pickle = F
                 except IOError, e:
                     sys.stderr.write("Error creating file\n")
                     exit(1)
+
+def print_dict_to_console(my_dict):
+    for stuff in my_dict.keys():
+        print "**************************************"
+        print stuff, "|"
+        if isinstance(my_dict[stuff], list):
+            for ent in my_dict[stuff]:
+                print ent
+        else:
+            print my_dict[stuff]
+        print "**************************************"
 
 
 def main():
