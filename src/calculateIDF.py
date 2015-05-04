@@ -10,9 +10,11 @@ import math
 
 import unicodedata
 import sys
+reload(sys)  
+sys.setdefaultencoding('utf8')
 
 
-
+NLTK_DATA_DIR = "./nltk_data"
 TEST_FILE = '/home/rap450/nlp/shellscripts'
 
 try:
@@ -42,7 +44,7 @@ table = string.maketrans("","")
 
 
 def removeStopWords(text):
-    return ' '.join([word for word in text.split() if word not in utils.stopwords])
+    return ' '.join([word for word in text.split() if word not in cachedStopWords])
 
 
 def getRawTextFromXMLDocTag(absFilePath):
@@ -84,6 +86,19 @@ def getRawTextFromXMLDocTag(absFilePath):
         return None
 
 
+def extract_sentences(rawText):
+    try:
+        nltk.data.find('tokenizers/punkt/english.pickle')
+    except LookupError:
+        nltk.download('punkt', download_dir = NLTK_DATA_DIR)
+    tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
+    tokenized_text = tokenizer.tokenize(rawText)
+    sentences = []
+    for textblob in tokenized_text:
+        sentences.extend(textblob.split('\n\n'))
+    return sentences
+
+
 def documentWordSet(sentList):
     if not isinstance(sentList, list):
         return []
@@ -120,18 +135,26 @@ def normalizeIDF(hmap, totalFiles):
 def usage():
     sys.stderr.write('createRawCorpus.py -i <inputdirectory> -o <outputdirectory>\n')
 
-<<<<<<< HEAD
+    hmap = {}
+    totalFiles = 0
+    for i in os.listdir(ipDirectory):
+        if i.endswith(".xml"):
+            totalFiles += 1
+            absFilePath = os.path.join(ipDirectory, str(i))
+            rawXMLText = getRawTextFromXMLDocTag(absFilePath)
+            docWordSet = documentWordSet(extract_sentences(str(rawXMLText)))
+            for docWord in docWordSet:
+                hmap[docWord] = hmap.get(docWord, 0) + 1
+    return hmap
 
-def processIDF(hmap, totalFiles):
-=======
 def normalizeIDF(hmap, totalFiles):
     max = 1.0;
+    totalFiles = 1.0*totalFiles
     for docWord in hmap.keys():
-        hmap[docWord] = math.log(totalFiles/(hmap.get(docWord, 1)))/math.log(10)
+        hmap[docWord] = math.log(totalFiles/(hmap.get(docWord, 1)))/math.log(10.0)
         if(max < hmap[docWord]):
             max = hmap[docWord]
 
->>>>>>> 8ca28a388519553e917ff4dd0b2ac9b42378aaa2
     for docWord in hmap.keys():
         hmap[docWord] = hmap[docWord]/max
     return hmap
