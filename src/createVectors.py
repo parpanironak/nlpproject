@@ -6,11 +6,10 @@ import codecs
 import os.path
 import re
 import string
-from nltk.corpus import stopwords
+import unicodedata
 
 
-cachedStopWords = stopwords.words("english")
-table = string.maketrans("","")
+
 
 NLTK_DATA_DIR = "./nltk_data"
 TEST_FILE = '/home/rap450/nlp/shellscripts'
@@ -26,6 +25,9 @@ try:
 except ImportError:
     sys.stderr.write("{0} depends on python {1} module. Run 'pip install {1}' from a shell.\n".format(sys.argv[0], "nltk"))
     exit(1)
+
+cachedStopWords = stopwords.words("english")
+table = string.maketrans("","")
 
 tbl = dict.fromkeys(i for i in xrange(sys.maxunicode)
                       if unicodedata.category(unichr(i)).startswith('P'))
@@ -88,16 +90,20 @@ def tfIdf(idfMap, vector):
 
 
 def mainMethod(odir):
-    tags = ["Barcelona", "Chinese" "Dutch", "Finnish", "Greek", "Italian", "Latin", "Milan", "PST", "Public", "Scottish", "Swedish", "Turkish" ]
+    #  tags = ["Barcelona", "Chinese" "Dutch", "Finnish", "Greek", "Italian", "Latin", "Milan", "PST", "Public", "Scottish", "Swedish", "Turkish" ]
+    tags = ["Barcelona"]
     idfFilePath = odir + "idf/wordIDF.txt"
     idfMap = loadIDF(idfFilePath)
     for tag in tags:
         ipfile = odir + "/tags/" + tag + ".txt"
         with open(ipfile, 'r') as f:
             for line in f:
-                entity, acount, bcount = line.split()
-                acount = int(acount)
-                bcount = int(bcount)
+                print line
+                tokens = line.split()
+                entity = tokens[0]
+                acount = int(tokens[1])
+                
+                bcount = int(tokens[2])
                 if(bcount >= 10):
                     vec = createTermFrequencyVector(tag, entity, odir)
                     tfidf = tfIdf(idfMap, vec)
@@ -129,7 +135,7 @@ def main():
             inputdir = arg
 
 
-    if inputdirir != "":
+    if inputdir != "":
         mainMethod(inputdir)
     else:
         usage()
