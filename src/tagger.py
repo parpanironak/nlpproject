@@ -91,7 +91,7 @@ def create_dict(tag_list, corpus_path = config.INPUT_DATA_DIR):
     return corpus_dict
 
 
-def extract_sentences_with_links(tag_list, filepath):
+def extract_sentences_with_links(tag, filepath):
     """Build a dict of Entity s from a single file
 
     dict extract_sentences_with_links(str[] tag_list, str filepath)
@@ -162,7 +162,7 @@ def associate_tags(tag_list, sentences):
     case of conflict.
 
     IMPORTS: re"""
- 
+
     sentence_dict = {}
     tag_patterns = [ TagMatcher(tag, re.compile(r"\[\[\s*([^\[\]|]+)\s*\|\s*{0}\s*\]\]".format(re.escape(tag)), flags = re.I))
                      for tag in tag_list ]
