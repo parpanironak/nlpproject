@@ -47,6 +47,8 @@ collecting template definitions.
 """
 
 import sys, os.path
+reload(sys)  
+sys.setdefaultencoding('utf8')
 import re                       # TODO use regex when it will be standard
 import argparse, random
 from itertools import izip,  izip_longest
@@ -1414,14 +1416,14 @@ def replaceInternalLinks(text):
     # call this after removal of external links, so we need not worry about
     # triple closing ]]].
     cur = 0
-    res = ''
+    res = u''
     for s,e in findBalanced(text, ['[['], [']]']):
         m = tailRE.match(text, e)
         if m:
             trail = m.group(0)
             end = m.end()
         else:
-            trail = ''
+            trail = u''
             end = e
         inner = text[s+2:e-2]
         # find first |
@@ -1439,7 +1441,7 @@ def replaceInternalLinks(text):
                     pipe = last # advance
                 curp = e1
             label = inner[pipe+1:].strip()
-        res += text[cur:s] + makeInternalLink(ul.unquote(title), ul.unquote(label)) + trail
+        res += text[cur:s] + makeInternalLink(title,label) + trail
         cur = end
     return res + text[cur:]
 
