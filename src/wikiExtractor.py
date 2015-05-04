@@ -56,7 +56,7 @@ import bz2
 import codecs
 from htmlentitydefs import name2codepoint
 import Queue, threading, multiprocessing
-
+import urllib as ul
 #===========================================================================
 
 # Program version
@@ -1439,7 +1439,7 @@ def replaceInternalLinks(text):
                     pipe = last # advance
                 curp = e1
             label = inner[pipe+1:].strip()
-        res += text[cur:s] + makeInternalLink(title, label) + trail
+        res += text[cur:s] + makeInternalLink(ul.unquote(title), ul.unquote(label)) + trail
         cur = end
     return res + text[cur:]
 
@@ -1717,8 +1717,8 @@ def makeInternalLink(title, label):
         colon2 = title.find(':', colon+1)
         if colon2 > 1 and title[colon+1:colon2] not in acceptedNamespaces:
             return ''
-    if Extractor.keepLinks:
-        return '[[%s | %s]]' % (urllib.quote(title.encode('utf-8')), urllib.quote(label.encode('utf-8')))
+    if True:
+        return '[[%s | %s]]' % ((title.encode('utf-8')), (label.encode('utf-8')))
     else:
         return "[[" + label + "]]"
 

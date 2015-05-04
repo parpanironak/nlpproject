@@ -14,6 +14,9 @@ from wikiExtractor import magicWordsRE
 from wikiExtractor import syntaxhighlight
 from wikiExtractor import unescape
 from wikiExtractor import dropSpans
+from wikiExtractor import Extractor
+
+extractor = Extractor(1,"zero", "None")
 
 bold_italic = re.compile(r"'''''(.*?)'''''")
 bold = re.compile(r"'''(.*?)'''")
@@ -150,6 +153,10 @@ def clean(text):
     #############################################
 
     # Cleanup text
+    text = re.sub(r'\*[^\n]*\n', '', text) 
+    text = re.sub(r'==+', '', text) 
+    text = re.sub(r'^[\s\t]+', '', text) 
+    text = re.sub(r'\n\n+', '\n', text) 
     text = text.replace('\t', ' ')
     text = spaces.sub(' ', text)
     text = dots.sub('...', text)
@@ -157,11 +164,12 @@ def clean(text):
     text = re.sub(u'(\[\(«) ', r'\1', text)
     text = re.sub(r'\n\W+?\n', '\n', text) # lines with only punctuations
     text = text.replace(',,', ',').replace(',.', '.')
-
-    return text
+    
+    return text.strip()
 
 
 def extract(ip):
+	
 	print "extract start"
 	if(not os.path.isfile(ip)):
 		print "no target file" 
@@ -208,7 +216,7 @@ def extract(ip):
 
 
 def main(argv):
-   temp = """'''April''' is the fourth [[month]] of the [[year]], and comes between [[March]] and [[May]]. It has 30 [[day]]s. April begins on the same day of week as [[July]] in all years and also [[January]] in leap years.
+   temp = """{{monththisyear|4}} '''April''' is the fourth [[month]] of the [[year]], and comes between [[March]] and [[May]]. It has 30 [[day]]s. April begins on the same day of week as [[July]] in all years and also [[January]] in leap years.
 
 April's [[flower]]s are the [[Sweet Pea]] and [[Asteraceae|Daisy]]. Its [[birthstone]] is the [[diamond]]. The meaning of the diamond is innocence.
 
@@ -449,6 +457,7 @@ Quite a few festivals are held in this month. In many [[Southeast Asia]]n cultur
 
    temp2 = clean(temp)
    print temp2 == temp;
+   print temp2
    print "start"
    inputfile = ''
    try:
