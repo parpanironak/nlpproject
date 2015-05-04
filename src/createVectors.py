@@ -7,6 +7,8 @@ import os.path
 import re
 import string
 import unicodedata
+reload(sys)
+sys.setdefaultencoding('utf8')
 
 
 
@@ -56,20 +58,23 @@ def createCountMap(wordList):
 
 
 def createTermFrequencyVector(tag, entity, odir):
-	entityFilePath = odir + "/corpus/" + tag + "/" + entity + ".txt"
+	entityFilePath = odir + "corpus/" + tag + "/" + entity.strip() + ".txt"
+	print entityFilePath
 	if(os.path.isfile(entityFilePath)):
+		print "here"
 		pattern = re.compile(r"(?i)\[\[{0} \| {1}\]\]".format(entity, tag))
 		wordList = []
 		with open(entityFilePath) as entityFile:
-			entityFileLine = entityFile.readline()
-			if entityFileLine != "<doc>" and entityFileLine != "</doc>" :
-				tempList = re.split(pattern, entityFileLine)
-				for temp in tempList:
-					partialWordList = removeStopWords(removeUPunctuations(unicode(temp.strip()))).split()
-					wordList = wordList + [x.lower() for x in partialWordList]
+			for entityFileLine in entityFile:
+				if entityFileLine.strip() != "<doc>" and entityFileLine.strip() != "</doc>" :
+					tempList = re.split(pattern, entityFileLine)
+					for temp in tempList:
+						partialWordList = removeStopWords(removeUPunctuations(unicode(temp.strip()))).split()
+						wordList = wordList + [x.lower() for x in partialWordList]
 		return createCountMap(wordList)
 
 	else:
+		print "there"
 		return None
 
 
@@ -81,12 +86,12 @@ def loadIDF(filePath):
             word, idf = line.split()
             idf = float(idf)
             hmap[word] = idf
-
     return hmap
 
 def tfIdf(idfMap, vector):
-    for word in vector:
-        vector[word] = vector[word] * idfMap.get(word, 0)
+	for word in vector:
+		vector[word] = vector[word] * idfMap.get(word, 0)
+	return vector
 
 
 def mainMethod(odir):
@@ -98,21 +103,23 @@ def mainMethod(odir):
         ipfile = odir + "/tags/" + tag + ".txt"
         with open(ipfile, 'r') as f:
             for line in f:
-                print line
+                #print line
                 tokens = line.rsplit("\t", 3)
                 entity = tokens[0]
                 acount = int(tokens[1])
-                
                 bcount = int(tokens[2])
-                if(bcount >= 10):
+                if(bcount >= 0):
                     vec = createTermFrequencyVector(tag, entity, odir)
                     tfidf = tfIdf(idfMap, vec)
-                    opfile = odir + "/vectors/" + tag + "/" + entity + ".txt"
+                    opfile = odir + "/vectors/" + tag + "/" + entity.strip() + ".txt"
+                    dir = os.path.dirname(opfile)
+                    if not os.path.exists(dir):
+                        os.makedirs(dir)
                     fx = open(opfile, "w")
                     for key in tfidf:
                         fx.write(key)
                         fx.write('\t')
-                        fx.write(tfidf[key])
+                        fx.write(unicode(tfidf[key]))
                         fx.write('\n')
                     fx.close()
 
