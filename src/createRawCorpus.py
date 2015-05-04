@@ -4,45 +4,41 @@ import sys, getopt
 import xml.etree.cElementTree as ET
 import codecs
 import os.path
-
-
-def extractSentencesWithLinks(tag, filePath):
-    return {"fish": (4,["r","o","n","a"]), "city":(3,["r","o","n","a","k"])}
-
-
-def extractSentencesWithLinks2(tag, filePath):
-    if(not os.path.isfile(filePath)):
-        return {}
+from tagger import Entity
+from tagger import extract_sentences_with_links
 
 
 def extract(inputfile, tag, odir):
     entityCountMap = {};
     with open(inputfile) as f:
-        filePath = f.readline()
-        hmap = extractSentencesWithLinks(tag, filePath)
-        for entity in hmap:
-            hmapValue = hmap[entity]
-            sentList = hmapValue[1]
-	    old = entityCountMap.get(entity, (0, 0))
-            entityCountMap[entity] = (old[0] + hmapValue[0], old[1] + len(sentList))
-            outputFilePath = odir + "/corpus/" + tag + "/" + entity + ".txt"
-            dir = os.path.dirname(outputFilePath)
-            if not os.path.exists(dir):
-                os.makedirs(dir)
-
-            outPutFile = open(outputFilePath, "a")
-            outPutFile.write("<doc>\n")
-            for sent in sentList:
-                outPutFile.write(sent)
-                outPutFile.write("\n")
-            outPutFile.write("</doc>\n")
-            outPutFile.close()
+		for line in f:
+			filePath = line.strip()
+			hmap = extract_sentences_with_links(tag, filePath)
+			for entity in hmap:
+				hmapValue = hmap[entity]
+				
+				count = hmapValue.count
+				sentList = hmapValue.sentences
+				old = entityCountMap.get(entity, (0, 0))
+				print old
+				entityCountMap[entity] = (old[0] + count, old[1] + len(sentList))
+				outputFilePath = odir + "/corpus/" + tag + "/" + entity + ".txt"
+				dir = os.path.dirname(outputFilePath)
+				if not os.path.exists(dir):
+					os.makedirs(dir)				
+				outPutFile = codecs.open(outputFilePath,'a', encoding='utf-8',errors='replace')
+				outPutFile.write(u"<doc>\n")
+				for sent in sentList:
+					outPutFile.write(unicode(sent))
+					outPutFile.write(u"\n")
+				outPutFile.write(u"</doc>\n")
+				outPutFile.close()
 
     outputFilePath = odir + "/tags/" + tag + ".txt"
     dir = os.path.dirname(outputFilePath)
     if not os.path.exists(dir):
         os.makedirs(dir)
-    outPutFile = open(outputFilePath, "w")
+    outPutFile = codecs.open(outputFilePath,'w', encoding='utf-8',errors='replace')
 
     for entity in entityCountMap:
         counts = entityCountMap[entity];
@@ -54,8 +50,9 @@ def extract(inputfile, tag, odir):
         dir = os.path.dirname(outputFilePath)
         if not os.path.exists(dir):
             os.makedirs(dir)
-        outPutFile = open(outputFilePath, "a")
+        outPutFile = codecs.open(outputFilePath,'a', encoding='utf-8',errors='replace')
         outPutFile.write(tag + "\n")
+        outPutFile.close()
 
 
 def usage():
@@ -90,3 +87,5 @@ def main():
 
 if __name__ == "__main__":
    main()
+
+
