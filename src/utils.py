@@ -28,10 +28,11 @@ class Entity:
     int self.count: number of times entity appears.
     str[] self.sentences: list of sentences in which entity appears."""
 
-    def __init__(self, tag_name, count = 0, sentences = []):
+    def __init__(self, tag_name):
         self.tag_name = tag_name
-        self.count = count
-        self.sentences = sentences
+        self.count = 0
+        self.sentences = []
+
     def increment(self, value = 1):
         self.count += value
     def __str__(self):
