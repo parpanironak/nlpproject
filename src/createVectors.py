@@ -6,16 +6,33 @@ import codecs
 import os.path
 import re
 import string
-from nltk.corpus import stopwords
+import unicodedata
 
-cachedStopWords = stopwords.words("english")
+try:
+    import utils, config
+except ImportError:
+    sys.stderr.write("Error: missing file utils.py, config.py\n")
+    exit(1)
+
 table = string.maketrans("","")
+
+TEST_FILE = '/home/rap450/nlp/shellscripts'
+
+tbl = dict.fromkeys(i for i in xrange(sys.maxunicode)
+                    if unicodedata.category(unichr(i)).startswith('P'))
+
+
+def removeUPunctuations(text):
+    return text.translate(tbl)
+
 
 def removePunctuations(s):
     return s.translate(table, string.punctuation)
 
+
 def removeStopWords(text):
-	return ' '.join([word for word in text.split() if word not in cachedStopWords])
+    return ' '.join([word for word in text.split() if word not in utils.cachedStopWords])
+
 
 def createCountMap(wordList):
     hmap = {};
@@ -23,29 +40,24 @@ def createCountMap(wordList):
         return None
     for word in wordList:
         hmap[word] = hmap.get(word, 0) + 1.0
-    count = 1.0*len(wordList) if len(wordList) > 1 else 1.0
-    
+    count = 1 * len(wordList) if len(wordList) > 1 else 1
     for word in hmap:
-		hmap[word] = hmap.get(word,0)/count;
-    
+        hmap[word] = float(hmap.get(word,0)) / float(count)
     return hmap
 
 
 def createTermFrequencyVector(tag, entity, odir):
-	entityFilePath = odir + "/corpus/" + tag + "/" + entity + ".txt"
-	if(os.path.isfile(entityFilePath)):	
-		pattern = re.compile(r"(?i)\[\[{0} \| {1}\]\]".format(entity, tag))
-		wordList = []	
-		with open(entityFilePath) as entityFile:
-			entityFileLine = entityFile.readline()
-			if entityFileLine != "<doc>" and entityFileLine != "</doc>" :				
-				tempList = re.split(pattern, entityFileLine)
-				for temp in tempList:
-					partialWordList = removeStopWords(removePunctuations(temp.strip())).split()
-					wordList = wordList + [x.lower() for x in partialWordList]
-		return createCountMap(wordList)
-	
-	else:
-		return None 
-
-
+    entityFilePath = os.path.join(odir, "corpus", tag, entity + ".txt")
+    pattern = re.compile(r"(?i)\[\[{0} \| {1}\]\]".format(entity, tag))
+    wordList = []
+    try:
+        with open(entityFilePath) as entityFile:
+            entityFileLine = entityFile.readline()
+            if entityFileLine != "<doc>" and entityFileLine != "</doc>" :
+                tempList = re.split(pattern, entityFileLine)
+                for temp in tempList:
+                    partialWordList = removeStopWords(removeUPunctuations(unicode(temp.strip()))).split()
+                    wordList = wordList + [x.lower() for x in partialWordList]
+        return createCountMap(wordList)
+    except IOError, e:
+        return None

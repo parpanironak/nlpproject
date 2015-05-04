@@ -1,11 +1,12 @@
 #!/usr/bin/env python2
 
 import os, sys, re
+import codecs
 
 try:
     import utils, config
 except ImportError:
-    sys.stderr.write("Error: missing file utils.py\n")
+    sys.stderr.write("Error: missing file utils.py, config.py\n")
     exit(1)
 
 class TagMatcher:
@@ -79,18 +80,20 @@ def create_dict(tag_list, corpus_path = config.INPUT_DATA_DIR):
     return corpus_dict
 
 
-def extract_sentences_with_links(tag_list, filepath):
+def extract_sentences_with_links(tag, filepath):
     """Build a dict of Entity s from a single file
 
-    dict extract_sentences_with_links(str[] tag_list, str filepath)
-    str[] tag: list of tags to search for
+    dict extract_sentences_with_links(str tag, str filepath)
+    str tag: tag to search for
     str filepath: path to file to process
     return value: dictionary of Entity s encountered in processed file. Keys are
     entities as strings, values are Entity classes or lists of Entity classes in
-    case of conflict."""
+    case of conflict.
+
+    IMPORTS: utils"""
 
     sentences = utils.extract_sentences(filepath)
-    return associate_tags(tag_list, sentences)
+    return associate_tags([tag], sentences)
 
 
 # TODO: store file offsets in memory as opposed to entire phrase (save some mem).
@@ -110,7 +113,7 @@ def associate_tags(tag_list, sentences):
     case of conflict.
 
     IMPORTS: re"""
- 
+
     sentence_dict = {}
     tag_patterns = [ TagMatcher(tag, re.compile(r"\[\[\s*([^\[\]|]+)\s*\|\s*{0}\s*\]\]".format(re.escape(tag)), flags = re.I))
                      for tag in tag_list ]
@@ -169,16 +172,7 @@ def print_dict_to_files(mydict, out_dir = config.OUTPUT_DATA_DIR, use_pickle = F
         will fail. Replace by 'import pickle'
     GLOBAL CONSTANTS: config.OUTPUT_DATA_DIR"""
 
-    if not os.path.isdir(out_dir):
-        if os.path.exists(out_dir):
-            sys.stderr.write("Error: file exists\n")
-            exit(1)
-        else:
-            try:
-                os.makedirs(out_dir)
-            except OSError:
-                sys.stderr.write("Error creating directory\n")
-                exit(1)
+    utils.ensure_dir(out_dir)
     if use_pickle:
         import cPickle as pickle
         for entity in mydict.keys():

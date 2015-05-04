@@ -5,57 +5,71 @@ import xml.etree.cElementTree as ET
 import codecs
 import os.path
 
-
-def extractSentencesWithLinks(tag, filePath):
-    return {"fish": (4,["r","o","n","a"]), "city":(3,["r","o","n","a","k"])}
-
-
-def extractSentencesWithLinks2(tag, filePath):
-    if(not os.path.isfile(filePath)):
-        return {}
+try:
+    import utils
+    from utils import Entity
+    from tagger import extract_sentences_with_links
+except ImportError:
+    sys.stderr.write("Error: missing files utils.py\n")
+    exit(1)
 
 
 def extract(inputfile, tag, odir):
     entityCountMap = {};
-    with open(inputfile) as f:
-        filePath = f.readline()
-        hmap = extractSentencesWithLinks(tag, filePath)
-        for entity in hmap:
-            hmapValue = hmap[entity]
-            sentList = hmapValue[1]
-	    old = entityCountMap.get(entity, (0, 0))
-            entityCountMap[entity] = (old[0] + hmapValue[0], old[1] + len(sentList))
-            outputFilePath = odir + "/corpus/" + tag + "/" + entity + ".txt"
-            dir = os.path.dirname(outputFilePath)
-            if not os.path.exists(dir):
-                os.makedirs(dir)
+    try:
+        with open(inputfile) as f:
+            for line in f:
+                filePath = line.strip()
+                hmap = extract_sentences_with_links(tag, filePath)
+                for entity in hmap:
+                    hmapValue = hmap[entity]
+                    count = hmapValue.count
+                    sentList = hmapValue.sentences
+                    old = entityCountMap.get(entity, (0, 0))
+                    print old
+                    entityCountMap[entity] = (old[0] + count, old[1] + len(sentList))
+                    outputFilePath = os.path.join(odir, "corpus", tag, entity + ".txt")
+                    dir_path = os.path.dirname(outputFilePath)
+                    utils.ensure_dir(dir_path)
+                    try:
+                        outPutFile = codecs.open(outputFilePath,'a', encoding='utf-8', errors='replace')
+                        outPutFile.write(u"<doc>\n")
+                        for sent in sentList:
+                            outPutFile.write(unicode(sent) + u'\n')
+                        outPutFile.write(u"</doc>\n")
+                        outPutFile.close()
+                    except IOError,e:
+                        sys.stderr.write(str(e) + '\n')
+                        exit(1)
+    except IOError, e:
+        sys.stderr.write(str(e) + '\n')
+        exit(1)
 
+    outputFilePath = os.path.join(odir, "tags", tag + ".txt")
+    dir_path = os.path.dirname(outputFilePath)
+    utils.ensure_dir(dir_path)
+
+    try:
+        outPutFile = open(outputFilePath, "w")
+        for entity in entityCountMap:
+            counts = entityCountMap[entity];
+            outPutFile.write(entity + "\t" + str(counts[0]) + "\t" + str(counts[1]) + "\n")
+        outPutFile.close()
+    except IOError, e:
+        sys.stderr.write(str(e) + '\n')
+        exit(1)
+
+    for entity in entityCountMap:
+        outputFilePath = os.path.join(odir, "entities", entity + ".txt")
+        dir_path = os.path.dirname(outputFilePath)
+        utils.ensure_dir(dir_path)
+        try:
             outPutFile = open(outputFilePath, "a")
-            outPutFile.write("<doc>\n")
-            for sent in sentList:
-                outPutFile.write(sent)
-                outPutFile.write("\n")
-            outPutFile.write("</doc>\n")
+            outPutFile.write(tag + "\n")
             outPutFile.close()
-
-    outputFilePath = odir + "/tags/" + tag + ".txt"
-    dir = os.path.dirname(outputFilePath)
-    if not os.path.exists(dir):
-        os.makedirs(dir)
-    outPutFile = open(outputFilePath, "w")
-
-    for entity in entityCountMap:
-        counts = entityCountMap[entity];
-        outPutFile.write(entity + "\t" + str(counts[0]) + "\t" + str(counts[1]) + "\n")
-    outPutFile.close()
-
-    for entity in entityCountMap:
-        outputFilePath = odir + "/entities/" + entity + ".txt"
-        dir = os.path.dirname(outputFilePath)
-        if not os.path.exists(dir):
-            os.makedirs(dir)
-        outPutFile = open(outputFilePath, "a")
-        outPutFile.write(tag + "\n")
+        except IOError, e:
+            sys.stderr.write(str(e) + '\n')
+            exit(1)
 
 
 def usage():
@@ -90,3 +104,4 @@ def main():
 
 if __name__ == "__main__":
    main()
+

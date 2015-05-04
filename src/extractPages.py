@@ -6,12 +6,18 @@ import codecs
 import os
 import re
 
+try:
+    import utils
+except ImportError:
+    sys.stderr.write("Error: missing file utils.py\n")
+    exit(1)
+
 def extract(ip):
     fileNames = codecs.open('FileNames','w',encoding='utf-8',errors='replace')
     print "extract start"
     if(not os.path.isfile(ip)):
         print "no target file"
-        sys.exit(0);
+        sys.exit(1);
 
     lineno = long(0);
     docs = long(0);
@@ -20,30 +26,33 @@ def extract(ip):
         flag = True;
         xmldoc = u'';
         for line in wikifile:
-            if flag and (re.match(r'<doc.*?>',line.strip()) is not None): #check if line matches <doc .... > tag
+            if flag and (re.match(r'<doc.*>',line.strip()) is not None): #check if line matches <doc .... > tag
                 flag = False
                 xmldoc += line
                 xmldoc += u'\n'
-                matchObj = re.search(r'title=\".*?\"',line.strip())
+                matchObj = re.search(r'title=\".*\"',line.strip())
                 fileNames.write(str(docs)+" "+matchObj.group(0)+"\n")
                 #title = extractTitle(matchObj.group(0))
-            elif not flag and not line.strip() == "</doc>":
-                xmldoc += u'\n'
-                xmldoc += line
-            elif not flag and line.strip() == "</doc>":
-                xmldoc += line
-                xmldoc += u'\n'
-                flag = True;
-                name = os.path.dirname(os.path.abspath(ip)) + "/Articles/" + str(docs) + u".xml"
-                try:
-                    fileObj = codecs.open(name, encoding='utf-8', errors='replace', mode="w")
-                    fileObj.write(xmldoc)
-                    xmldoc = u'';
-                except:
-                    print "Unexpected error:", sys.exc_info()
-                    print "Line:"+str(lineno) + "\n" +"Cannot write file" + name
-                docs = docs + 1;
-                lineno = lineno + 1;
+            elif not flag:
+                if line.strip() != "</doc>":
+                    xmldoc += u'\n'
+                    xmldoc += line
+                else:
+                    xmldoc += line
+                    xmldoc += u'\n'
+                    flag = True;
+                    name = os.path.join(os.path.dirname(os.path.abspath(ip)), "Articles", str(docs) + u'.xml')
+                    utils.ensure_dir(dirname(name))
+                    try:
+                        fileObj = codecs.open(name, encoding='utf-8', errors='replace', mode="w")
+                        fileObj.write(xmldoc)
+                        fileObj.close()
+                        xmldoc = u'';
+                    except IOError, e:
+                        sys.stderr.write(str(e) + '\n')
+                        sys.stderr.write("Line:" + str(lineno) + "\n")
+                    docs += 1;
+                    lineno += 1;
                 # if docs >= 10:
                 #    sys.exit(0);
 
@@ -66,9 +75,8 @@ def main(argv):
             inputfile = arg
 
     if inputfile != '':
-        directory = os.path.dirname(os.path.abspath(inputfile)) + "/Articles/"
-        if not os.path.exists(directory):
-            os.makedirs(directory)
+        dir_path = os.path.join(os.path.dirname(os.path.abspath(inputfile)), "Articles")
+        utils.ensure_dir(dir_path)
         extract(inputfile)
 
 if __name__ == "__main__":

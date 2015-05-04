@@ -1,10 +1,10 @@
 #!/usr/bin/env python2
 
-import os, sys
+import os, sys, codecs, re
 try:
     import config
 except ImportError:
-    sys.stderr.write("Error: missing file utils.py\n")
+    sys.stderr.write("Error: missing file config.py\n")
     exit(1)
 
 try:
@@ -17,6 +17,12 @@ try:
     from nltk.corpus import stopwords
 except ImportError:
     sys.stderr.write("{0} depends on python {1} module. Run 'pip install {1}' from a shell.\n".format(sys.argv[0], "nltk"))
+    exit(1)
+
+try:
+    from bs4 import BeautifulSoup
+except ImportError:
+    sys.stderr.write("{0} depends on python {1} module. Run 'pip install {1}' from a shell.\n".format(sys.argv[0], "bs4"))
     exit(1)
 
 stopwords = stopwords.words('english')
@@ -54,13 +60,25 @@ def extract_sentences(filepath):
         nltk.data.find('tokenizers/punkt/english.pickle')
     except LookupError:
         nltk.download('punkt', download_dir = config.NLTK_DATA_DIR)
+#    xmldoc = []
+#    flag = True
+#    open_doc_tag = re.compile(r'<doc[^>]*>')
     try:
-        with open(filepath) as myfile:
-            file_contents = myfile.readlines()
+        with codecs.open(filepath,'r', encoding='utf-8', errors='replace') as document:
+            xmldoc = BeautifulSoup(document).text
+#            for line in document:
+#                line = line.strip()
+#                if flag and (open_doc_tag.match(line) is not None):
+#                    flag = False
+#                elif not flag:
+#                    if line != "</doc>":
+#                        xmldoc.append(line)
+#                    else:
+#                        flag = True;
     except IOError, e:
         sys.stderr.write(str(e) + '\n')
         return []
-    file_contents = "".join(file_contents)
+    file_contents = "".join(xmldoc)
     tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
     tokenized_text = tokenizer.tokenize(file_contents)
     sentences = []
@@ -69,3 +87,10 @@ def extract_sentences(filepath):
     return sentences
 
 
+def ensure_dir(dir_path):
+    if not os.path.exists(dir_path):
+        try:
+            os.makedirs(dir_path)
+        except OSError, e:
+            sys.stderr.write(str(e) + '\n')
+            exit(1)
