@@ -61,9 +61,9 @@ def getRawTextFromXMLDocTag(absFilePath):
 						xmldoc += line
 					elif not flag and line.strip() == "</doc>":
 						flag = True;
-			
-			return xmldoc						
-		except  Exception,e: 
+
+			return xmldoc
+		except  Exception,e:
 			f = open("error.txt" , "a")
 			f.write(str(absFilePath))
 			f.write("\n")
@@ -114,18 +114,18 @@ def calculateIDF(ipDirectory):
 
 	hmap = {}
 	totalFiles = 0
-	for i in os.listdir(ipDirectory):			
+	for i in os.listdir(ipDirectory):
 		totalFiles = totalFiles + 1
 		absFilePath = ipDirectory + "/" + str(i)
 		rawXMLText = getRawTextFromXMLDocTag(absFilePath)
 		docWordSet = documentWordSet(extract_sentences(unicode(rawXMLText)))
 		for docWord in docWordSet:
 			hmap[docWord] = hmap.get(docWord, 0) + 1
-				
+
 	return hmap, totalFiles
 
 def normalizeIDF(hmap, totalFiles):
-	
+
 	totalFiles = 1.0*totalFiles
 	for docWord in hmap:
 		hmap[docWord] = math.log(totalFiles/(hmap.get(docWord, 1)))
@@ -146,9 +146,15 @@ def usage():
                 hmap[docWord] = hmap.get(docWord, 0) + 1
     return hmap
 
-def processIDF(hmap, totalFiles):
+def normalizeIDF(hmap, totalFiles):
+    max = 1.0;
     for docWord in hmap.keys():
-        hmap[docWord] = math.log(totalFiles/(hmap.get(docWord, 0)))
+        hmap[docWord] = math.log(totalFiles/(hmap.get(docWord, 1)))/math.log(10)
+        if(max < hmap[docWord]):
+            max = hmap[docWord]
+
+    for docWord in hmap.keys():
+        hmap[docWord] = hmap[docWord]/max
     return hmap
 
 

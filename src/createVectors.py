@@ -46,28 +46,95 @@ def createCountMap(wordList):
     for word in wordList:
         hmap[word] = hmap.get(word, 0) + 1.0
     count = 1.0*len(wordList) if len(wordList) > 1 else 1.0
-    
+
     for word in hmap:
 		hmap[word] = hmap.get(word,0)/count;
-    
+
     return hmap
 
 
 def createTermFrequencyVector(tag, entity, odir):
 	entityFilePath = odir + "/corpus/" + tag + "/" + entity + ".txt"
-	if(os.path.isfile(entityFilePath)):	
+	if(os.path.isfile(entityFilePath)):
 		pattern = re.compile(r"(?i)\[\[{0} \| {1}\]\]".format(entity, tag))
-		wordList = []	
+		wordList = []
 		with open(entityFilePath) as entityFile:
 			entityFileLine = entityFile.readline()
-			if entityFileLine != "<doc>" and entityFileLine != "</doc>" :				
+			if entityFileLine != "<doc>" and entityFileLine != "</doc>" :
 				tempList = re.split(pattern, entityFileLine)
 				for temp in tempList:
 					partialWordList = removeStopWords(removeUPunctuations(unicode(temp.strip()))).split()
 					wordList = wordList + [x.lower() for x in partialWordList]
 		return createCountMap(wordList)
-	
+
 	else:
-		return None 
+		return None
 
 
+
+def loadIDF(filePath):
+    hmap = {}
+    with open(filePath, 'r') as f:
+        for line in f:
+            word, idf = line.split()
+            idf = float(idf)
+            hmap[word] = idf
+
+    return hmap
+
+def tfIdf(idfMap, vector):
+    for word in vector:
+        vector[word] = vector[word] * idfMap.get(word, 0)
+
+
+def mainMethod(odir):
+    tags = ["Barcelona", "Chinese" "Dutch", "Finnish", "Greek", "Italian", "Latin", "Milan", "PST", "Public", "Scottish", "Swedish", "Turkish" ]
+    idfFilePath = odir + "idf/wordIDF.txt"
+    idfMap = loadIDF(idfFilePath)
+    for tag in tags:
+        ipfile = odir + "/tags/" + tag + ".txt"
+        with open(ipfile, 'r') as f:
+            for line in f:
+                entity, acount, bcount = line.split()
+                acount = int(acount)
+                bcount = int(bcount)
+                if(bcount >= 10):
+                    vec = createTermFrequencyVector(tag, entity, odir)
+                    tfidf = tfIdf(idfMap, vec)
+                    opfile = odir + "/vectors/" + tag + "/" + entity + ".txt"
+                    fx = open(opfile, "w")
+                    for key in tfidf:
+                        fx.write(key)
+                        fx.write('\t')
+                        fx.write(tfidf[key])
+                        fx.write('\n')
+                    fx.close()
+
+def usage():
+    sys.stderr.write('createRawCorpus.py -i <inputdirectory>\n')
+
+
+def main():
+    print "start"
+    inputdir = ''
+
+    try:
+        opts, args = getopt.getopt(sys.argv[1:],"i:",["idir="])
+    except getopt.GetoptError:
+        usage()
+        sys.exit(2)
+
+    for opt, arg in opts:
+        if opt in ("-i", "--idir"):
+            inputdir = arg
+
+
+    if inputdirir != "":
+        mainMethod(inputdir)
+    else:
+        usage()
+        sys.exit(2)
+
+
+if __name__ == "__main__":
+   main()
