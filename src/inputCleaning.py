@@ -35,6 +35,11 @@ def ipclean(inputfile):
         sys.stderr.write(str(e) + '\n')
         exit(1)
 
+tbl = dict.fromkeys(i for i in xrange(sys.maxunicode)
+                      if unicodedata.category(unichr(i)).startswith('P'))
+
+def removeUPunctuations(text):
+    return text.translate(tbl)
 
 def readable_entities(text):
     return re.sub(r'\[\[\s*[^\[\]|]+\s*\|\s*([^\[\]|]+)\s*\]\]', r'\1', text)

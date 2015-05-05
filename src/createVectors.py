@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 
 import sys, getopt
 import xml.etree.cElementTree as ET
@@ -61,7 +62,7 @@ def createTermFrequencyVector(tag, entity, odir):
 	entityFilePath = odir + "corpus/" + tag + "/" + entity.strip() + ".txt"
 	print entityFilePath
 	if(os.path.isfile(entityFilePath)):
-		
+
 		pattern = re.compile(r"(?i)\[\[{0} \| {1}\]\]".format(entity, tag))
 		wordList = []
 		with open(entityFilePath) as entityFile:
