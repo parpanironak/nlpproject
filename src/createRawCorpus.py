@@ -21,7 +21,7 @@ def extract(inputfile, tag, odir):
 				sentList = hmapValue.sentences
 				old = entityCountMap.get(entity, (0, 0))
 				entityCountMap[entity] = (old[0] + count, old[1] + len(sentList))
-				outputFilePath = odir + "/corpus/" + tag + "/" + entity + ".txt"
+				outputFilePath = odir + "/corpus/" + tag + "/" + entity.strip() + ".txt"
 				dir = os.path.dirname(outputFilePath)
 				if not os.path.exists(dir):
 					os.makedirs(dir)

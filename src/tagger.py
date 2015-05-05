@@ -98,49 +98,12 @@ def extract_sentences_with_links(tag, filepath):
     str filepath: path to file to process
     return value: dictionary of Entity s encountered in processed file. Keys are
     entities as strings, values are Entity classes or lists of Entity classes in
-    case of conflict."""
+    case of conflict.
+
+    IMPORTS: utils"""
 
     sentences = utils.extract_sentences(filepath)
     return associate_tags([tag], sentences)
-
-def extract_sentences(filepath):
-    """Uses NLTK module to segment text from file into english sentences.
-    Segmentation is only as good as what is provided by NLTK.
-    Text is also split along double-newlines to provide for titles/lists/other.
-    Returns empty list in case of error reading file.
-
-    str[] extract_sentences(str filepath)
-    str filepath: path to file to process.
-    return value: list of sentences in processed file.
-
-    IMPORTS: sys, nltk
-    GLOBAL CONSTANTS: NLTK_DATA_DIR"""
-
-    try:
-        nltk.data.find('tokenizers/punkt/english.pickle')
-    except LookupError:
-        nltk.download('punkt', download_dir = NLTK_DATA_DIR)
-    try:
-		xmldoc = []
-		flag = True
-		with codecs.open(filepath ,'r', encoding='utf-8',errors='replace') as document:
-			for line in document:
-				if flag and (re.match(r'<doc.*?>',line.strip()) is not None):
-					flag = False
-				elif not flag and not line.strip() == "</doc>":
-					xmldoc.append(line)
-				elif not flag and line.strip() == "</doc>":
-					flag = True;
-    except IOError, e:
-        sys.stderr.write(str(e) + '\n')
-        return []
-    file_contents = "".join(xmldoc)
-    tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
-    tokenized_text = tokenizer.tokenize(file_contents)
-    sentences = []
-    for textblob in tokenized_text:
-        sentences.extend(textblob.split('\n\n'))
-    return sentences
 
 
 # TODO: store file offsets in memory as opposed to entire phrase (save some mem).
