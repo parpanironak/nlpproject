@@ -48,12 +48,17 @@ def createCountMap(wordList):
     hmap = {};
     if not isinstance(wordList , list):
         return None
+    maxcount = 1.0
     for word in wordList:
         hmap[word] = hmap.get(word, 0) + 1.0
+        if maxcount < hmap[word]:
+			maxcount = hmap[word]
+			
     count = 1.0*len(wordList) if len(wordList) > 1 else 1.0
-
+	
     for word in hmap:
-		hmap[word] = hmap.get(word,0)/count;
+		#hmap[word] = hmap.get(word,0)/count;
+		hmap[word] = hmap.get(word,0)/maxcount;
 
     return hmap
 
@@ -70,7 +75,7 @@ def createTermFrequencyVector(tag, entity, odir):
 				if entityFileLine.strip() != "<doc>" and entityFileLine.strip() != "</doc>" :
 					tempList = re.split(pattern, entityFileLine)
 					for temp in tempList:
-						partialWordList = removeStopWords(removeUPunctuations(unicode(temp.strip()))).split()
+						partialWordList = removeStopWords(removeUPunctuations(unicode(temp.strip().lower()))).split()
 						wordList = wordList + [x.lower() for x in partialWordList]
 		return createCountMap(wordList)
 
