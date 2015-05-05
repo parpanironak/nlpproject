@@ -61,7 +61,7 @@ def createTermFrequencyVector(tag, entity, odir):
 	entityFilePath = odir + "corpus/" + tag + "/" + entity.strip() + ".txt"
 	print entityFilePath
 	if(os.path.isfile(entityFilePath)):
-		print "here"
+		
 		pattern = re.compile(r"(?i)\[\[{0} \| {1}\]\]".format(entity, tag))
 		wordList = []
 		with open(entityFilePath) as entityFile:
@@ -74,7 +74,6 @@ def createTermFrequencyVector(tag, entity, odir):
 		return createCountMap(wordList)
 
 	else:
-		print "there"
 		return None
 
 
