@@ -156,7 +156,6 @@ def clean(text):
     # Cleanup text
     text = re.sub('<[^>]*>', '', text)
     text = re.sub(r'\b[0-9]+(\.[0-9]*){0,1}\b', '', text)
-    #
     text = re.sub(r'\([^\w]*\)', '', text)
     text = re.sub(r'^\*+', '', text)
     #text = re.sub(r'\n\*+[^\n]*\n', '', text)
