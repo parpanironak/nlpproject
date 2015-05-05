@@ -6,6 +6,7 @@ import os
 reload(sys)
 sys.setdefaultencoding('utf8')
 import re
+import unicodedata
 try:
     import config
 except ImportError:

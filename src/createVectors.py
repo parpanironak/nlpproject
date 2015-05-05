@@ -64,7 +64,7 @@ def createCountMap(wordList):
 
 
 def createTermFrequencyVector(tag, entity, odir):
-	entityFilePath = odir + "corpus/" + tag + "/" + entity.strip() + ".txt"
+	entityFilePath = odir + "/corpus/" + tag + "/" + entity.strip() + ".txt"
 	print entityFilePath
 	if(os.path.isfile(entityFilePath)):
 
@@ -94,15 +94,15 @@ def loadIDF(filePath):
     return hmap
 
 def tfIdf(idfMap, vector):
-	for word in vector:
-		vector[word] = vector[word] * idfMap.get(word, 0)
-	return vector
+    for word in vector:
+        vector[word] = vector[word] * idfMap.get(word, 0)
+    return vector
 
 
 def mainMethod(odir):
     #  tags = ["Barcelona", "Chinese" "Dutch", "Finnish", "Greek", "Italian", "Latin", "Milan", "PST", "Public", "Scottish", "Swedish", "Turkish" ]
-    tags = ["Barcelona"]
-    idfFilePath = odir + "idf/wordIDF.txt"
+    tags = ["English","Tokyo","Japanese","French"]
+    idfFilePath = odir + "/idf/wordIDF.txt"
     idfMap = loadIDF(idfFilePath)
     for tag in tags:
         ipfile = odir + "/tags/" + tag + ".txt"
