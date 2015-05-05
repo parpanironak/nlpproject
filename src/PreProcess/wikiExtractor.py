@@ -1359,7 +1359,7 @@ def dropNested(text, openDelim, closeDelim):
         while end.end() < next.start():
             # { } {
             if nest:
-                nest -= 1
+                nest -= 1clean
                 # try closing more
                 last = end.end()
                 end = closeRE.search(text, end.end())

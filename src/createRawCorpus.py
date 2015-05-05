@@ -20,7 +20,6 @@ def extract(inputfile, tag, odir):
 				count = hmapValue.count
 				sentList = hmapValue.sentences
 				old = entityCountMap.get(entity, (0, 0))
-				print old
 				entityCountMap[entity] = (old[0] + count, old[1] + len(sentList))
 				outputFilePath = odir + "/corpus/" + tag + "/" + entity + ".txt"
 				dir = os.path.dirname(outputFilePath)
