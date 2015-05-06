@@ -26,8 +26,8 @@ except ImportError:
     sys.stderr.write("{0} depends on python {1} module. Run 'pip install {1}' from a shell.\n".format(sys.argv[0], "nltk"))
     exit(1)
 
-#tags = ["Barcelona", "Chinese" "Dutch", "Finnish", "Greek", "Italian", "Latin", "Milan", "PST", "Public", "Scottish", "Swedish", "Turkish" ]
-tags = ["French","English","Tokyo","Japanese"]
+tags = ["English","Tokyo","Japanese","French","Barcelona", "Chinese", "Dutch", "Finnish", "Greek", "Italian", "Latin", "Milan", "PST", "Public", "Scottish", "Swedish", "Turkish" ]
+#tags = ["French","English","Tokyo","Japanese"]
 
 cachedStopWords = stopwords.words("english")
 
@@ -103,14 +103,14 @@ def compare(entityMap, sentvec, idf):
 		count = 0.0
 		for entity in entityMap:
 			if dim in entityMap[entity]:
-				count = count + 1.0		
+				count = count + entityMap[entity][dim]		
 		if count > 0:
 			hmap[dim] = math.log(1.0*totalEntityCount/count)
 			maxval = hmap[dim] if hmap[dim] > maxval else maxval
 		else:
 			hmap[dim] = 0.0
 	for dim in sentvec:
-		hmap[dim] =  hmap[dim] / maxval
+		hmap[dim] = 1.0 +  hmap[dim] / maxval
 	
 	score = 0.0
 	entitScoreMap = {}
@@ -118,11 +118,17 @@ def compare(entityMap, sentvec, idf):
 
 	for entity in entityMap:
         	score = 0.0
+		d1 = 0.0
+		d2 = 0.0
 		for dim in sentvec:
 			if dim in entityMap[entity]:
-				score = score + hmap[dim]*(entityMap[entity][dim])*sentvec[dim]
-
-		entitScoreMap[entity] = score
+				score = score + (hmap[dim]**2)*entityMap[entity][dim]*sentvec[dim]
+				d1 = d1 + (hmap[dim]*entityMap[entity][dim])**2.0
+				d2 = d2 + (hmap[dim]*sentvec[dim])**2.0
+		d1 = (1+d1)**0.5
+		d2 = (1+d2)**0.5
+		
+		entitScoreMap[entity] = score/(d1*d2)
 	
 	x = entitScoreMap
 	sorted_x = sorted(x.items(), key=lambda x:x[1])	
@@ -155,20 +161,21 @@ def disambiguate(inputfilepath, entitymap, odir):
                         			sent = ""+ line[0 : end + m1.start()] + " " + line[end + m1.end() :]
                         			sentvec = createVector(sent.strip())
                         			if tag in tags:
-							print line
+							#print line
 							sorted_x = compare(entitymap[tag], sentvec, idfMap)
-							for v in sorted_x:
-								print str(v)
-							print "\n"	
+							ent = sorted_x[0][0].strip()
+							print line[0 : end + m1.start()] + m1.group(0).replace("@@",ent)+ line[end + m1.end() :];
                         			else:
                             				print line
-                            				print "cannot identify %s" % m1.group(0)
-                        			print "========================================="
+                            				#print "cannot identify %s" % m1.group(0)
+                        			#print "========================================="
                        	 			end = m1.end()
                 		else:
                     			print line
-                    			print "No tags to disambiguate"
-                    			print "========================================="
+                    			#print "No tags to disambiguate"
+                    			#print "========================================="
+			else:
+				print line
 					
 def loadEntiyVector(entity, tag, odir):
 	
@@ -191,7 +198,7 @@ def loadVectors(odir):
 		with open(fpath, "r") as f:
 			for line in f:				
 				entity, acount, bcount = line.rsplit("\t",3)
-				if float(acount) > 1:
+				if float(acount) > 0:
 					innerhmap[entity] = loadEntiyVector(entity.strip(), tag ,odir)
 			
 		hmap[tag] = innerhmap 

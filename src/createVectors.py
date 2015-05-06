@@ -95,13 +95,14 @@ def loadIDF(filePath):
 
 def tfIdf(idfMap, vector):
     for word in vector:
-        vector[word] = vector[word] * idfMap.get(word, 0)
+        #vector[word] = vector[word] * idfMap.get(word, 0)
+    	vector[word] = vector[word]
     return vector
 
 
 def mainMethod(odir):
-    #  tags = ["Barcelona", "Chinese" "Dutch", "Finnish", "Greek", "Italian", "Latin", "Milan", "PST", "Public", "Scottish", "Swedish", "Turkish" ]
-    tags = ["English","Tokyo","Japanese","French"]
+    tags = ["Barcelona", "Chinese", "Dutch", "Finnish", "Greek", "Italian", "Latin", "Milan", "PST", "Public", "Scottish", "Swedish", "Turkish" ]
+    #tags = ["English","Tokyo","Japanese","French"]
     idfFilePath = odir + "/idf/wordIDF.txt"
     idfMap = loadIDF(idfFilePath)
     for tag in tags:
