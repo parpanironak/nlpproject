@@ -26,7 +26,7 @@ except ImportError:
     sys.stderr.write("{0} depends on python {1} module. Run 'pip install {1}' from a shell.\n".format(sys.argv[0], "nltk"))
     exit(1)
 
-tags = ["English","Tokyo","Japanese","French","Barcelona", "Chinese", "Dutch", "Finnish", "Greek", "Italian", "Latin", "Milan", "PST", "Public", "Scottish", "Swedish", "Turkish" ]
+tags = ["Barcelona", "Chinese", "Dutch", "Finnish", "Greek", "Italian", "Latin", "Milan", "PST", "Public", "Scottish", "Swedish", "Turkish" ]
 #tags = ["French","English","Tokyo","Japanese"]
 
 cachedStopWords = stopwords.words("english")

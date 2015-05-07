@@ -26,6 +26,8 @@ def calculateEfficiency(predictedTagList, correctTagList):
     correctMatchCount = 0.0
     if len(predictedTagList) != len(correctTagList):
         print "Tags in both files not equal"
+        print str(len(predictedTagList)) + " is length of predicted tag list"
+        print str(len(correctTagList)) + "is the length of correct tag list"
         exit(0)
     else:
         for ptag,ctag in itertools.izip(predictedTagList,correctTagList):
