@@ -56,8 +56,11 @@ def loadIDF(filePath):
 			hmap[word] = idf						       
 	return hmap
 
-def removeStopWords(text):
+def removeStopWordsStem(text):
 	return ' '.join([stemmer.stem(word.lower()) for word in text.split() if stemmer.stem(word.lower()) not in cachedStopWords])
+
+def removeStopWords(text):
+	return ' '.join([word.lower() for word in text.split() if word.lower() not in cachedStopWords])
 
 def getMatchObjects(pattern, line):
     lis = []
@@ -96,7 +99,7 @@ def createVector(text):
     text = text.lower()
     text = readable_entities(text)
     text = removePunctuations(text)
-    text = removeStopWords(text)
+    text = removeStopWordsStem(text)
     return createCountMap(text.split())
 
 def compare(entityMap, entityCountMap ,sentvec, idf):
@@ -107,14 +110,14 @@ def compare(entityMap, entityCountMap ,sentvec, idf):
 		count = 0.0
 		for entity in entityMap:
 			if dim in entityMap[entity]:
-				count = count + entityMap[entity][dim]		
+				count = count + entityMap[entity][dim]	
 		if count > 0:
 			hmap[dim] = math.log(1.0*totalEntityCount/count)
 			maxval = hmap[dim] if hmap[dim] > maxval else maxval
 		else:
 			hmap[dim] = 1.0
 	for dim in sentvec:
-		hmap[dim] = hmap[dim] / maxval
+		hmap[dim] = 1.0 + hmap[dim] / maxval
 	
 	score = 0.0
 	entitScoreMap = {}
@@ -126,9 +129,9 @@ def compare(entityMap, entityCountMap ,sentvec, idf):
 		d2 = 0.0
 		for dim in sentvec:
 			if dim in entityMap[entity]:
-				score = score + (hmap[dim]**2)*entityMap[entity][dim]*sentvec[dim]*((1.0 + idf.get(dim,0.0))**2)
-				d1 = d1 + (hmap[dim]*entityMap[entity][dim]*(1.0+idf.get(dim,0.0)))**2.0
-				d2 = d2 + (hmap[dim]*sentvec[dim]*(1.0+idf.get(dim,0.0)))**2.0
+				score = score + (hmap[dim]**2)*entityMap[entity][dim]*sentvec[dim]*((idf.get(dim,0.0))**2)
+				d1 = d1 + (hmap[dim]*entityMap[entity][dim]*(idf.get(dim,0.0)))**2.0
+				d2 = d2 + (hmap[dim]*sentvec[dim]*(idf.get(dim,0.0)))**2.0
 		d1 = (1+d1)**0.5
 		d2 = (1+d2)**0.5
 		
@@ -142,58 +145,61 @@ def compare(entityMap, entityCountMap ,sentvec, idf):
 	#	maxcount = 
 	#	for x in sorted_x:
 			
-	return sorted_x
+	if len(sorted_x) == 0:
+		return []
 
-	maxentity = None
-	for entity in entitScoreMap:
-		if maxentity == None:
-			maxentity = entity
+	maxval = sorted_x[0][1];
+	retlist = [sorted_x[0][0]]
+	
+	for i in range(1, len(sorted_x)):
+		if sorted_x[i][1] == maxval:
+			retlist.append(sorted_x[i][0])
 		else:
-			maxentity = entity if entitScoreMap[entity] > entitScoreMap[maxentity] else maxentity
-			
-	return maxentity
+			break
+
+	return retlist
 	
 def disambiguate(inputfilepath, entitymap, hmap2 , odir):
-	idfFilePath = odir + "/idf/wordIDF.txt"
+	idfFilePath = odir + "/idf/wordIDF2.txt"
 	idfMap = loadIDF(idfFilePath)
-	print "enter disambiguate"
-	print inputfilepath
+	outputfile = open(odir+"/ans.txt","w")
 	with open(inputfilepath, "r") as f:
         	for line in f:
 			#print line
 			line = line.strip()
-            		if line != "=========================================" and line != "+++++++++++++++++++++++++++++++++++++++++":
+			if line != "=========================================" and line != "+++++++++++++++++++++++++++++++++++++++++":
                 		m = getMatchObjects(r'\[\[\s*@@\s*\|\s*(.*?)\s*\]\]',line)
                 		if(len(m) > 0):
                     			end = 0
                     			for m1 in m:
-                        			link = "" + line[end + m1.start(): end + m1.end()]
-                        			tag = m1.group(1).strip()
-                        			tag = tag[0:1].upper() + tag[1:].lower()
-                        			sent = ""+ line[0 : end + m1.start()] + " " + line[end + m1.end() :]
-                        			sentvec = createVector(sent.strip())
-                        			if tag in tags:
+						link = "" + line[end + m1.start(): end + m1.end()]
+						tag = m1.group(1).strip()
+						tag = tag[0:1].upper() + tag[1:].lower()
+						sent = ""+ line[0 : end + m1.start()] + " " + line[end + m1.end() :]
+						sentvec = createVector(sent.strip())
+						if tag in tags:
 							print line
 							sorted_x = compare(entitymap[tag], hmap2[tag], sentvec, idfMap)
-							ent = sorted_x[0][0].strip()
 							#print line[0 : end + m1.start()] + m1.group(0).replace("@@",ent)+ line[end + m1.end() :];
-                        				for x in sorted_x:
-								print x
-							#print re.sub(r"\s*\|\s", r"|", m1.group(0).replace("@@",ent))
-							
-						else:
-                            				#print line
-							print ""
-                            				#print "cannot identify %s" % m1.group(0)
-                        			#print "========================================="
-                       	 			end = m1.end()
-                		else:
-					print ""
+                        				#for x in sorted_x:
+							#	print x
+							maxv = sorted_x[0]
+							if len(sorted_x) > 1:
+								for fg in sorted_x:
+									if hmap2[tag][fg] > hmap2[tag][maxv]:
+										maxv = fg
+							#print re.sub(r"\s*\|\s", r"|", m1.group(0).replace("@@",maxv))
+							outputfile.write( re.sub(r"\s*\|\s", r"|", m1.group(0).replace("@@",maxv)))
+							outputfile.write("\n")
+						end = m1.end()
+				#else:
+					#print ""
                     			#print line
                     			#print "No tags to disambiguate"
                     			#print "========================================="
 			#else:
 			#	print line
+	outputfile.close()
 					
 def loadEntiyVector(entity, tag, odir):
 	
