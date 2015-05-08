@@ -23,7 +23,8 @@ try:
         nltk.data.find('corpora/stopwords/english')
     except LookupError:
         nltk.download('stopwords', download_dir = NLTK_DATA_DIR)
-    from nltk.corpus import stopwords
+    from nltk.corpus import stopword
+    from nltk.stem import PorterStemmer  
 except ImportError:
     sys.stderr.write("{0} depends on python {1} module. Run 'pip install {1}' from a shell.\n".format(sys.argv[0], "nltk"))
     exit(1)
@@ -43,7 +44,7 @@ table = string.maketrans("","")
 
 
 def removeStopWords(text):
-    return ' '.join([word for word in text.split() if word not in cachedStopWords])
+    return ' '.join([stemmer.stem(word) for word in text.split() if stemmer.stem(word) not in cachedStopWords])
 
 
 def getRawTextFromXMLDocTag(absFilePath):

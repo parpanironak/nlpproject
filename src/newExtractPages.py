@@ -8,6 +8,9 @@ import sys, os.path
 import re                       # TODO use regex when it will be standard
 from bs4 import BeautifulSoup
 
+reload(sys)
+sys.setdefaultencoding('utf8')
+
 from wikiExtractor import replaceExternalLinks
 from wikiExtractor import dropNested
 from wikiExtractor import replaceInternalLinks
@@ -200,23 +203,22 @@ def extract(ip):
 				#print xmldoc
 				flag = True;
 				soup = BeautifulSoup(xmldoc)
-				rawtext =  soup.find('text').string
-
-				elem = ET.fromstring(xmldoc.encode('utf-8', 'replace'))
-				xmldoc = u'';
-				tree = ET.ElementTree(elem)
-				name = os.path.dirname(os.path.abspath(ip)) + "/pages/" + tree.find(u'title').text.replace("/", "") + u".xml"
-				title = tree.find(u'title').text.replace("/", "")
-				header = u'<doc title="%s">\n' % (tree.find(u'title').text.replace("/", ""))
+				xmldoc = u''
+				rawtext =  soup.find('text')
+				title = soup.find('title')
+				if rawtext == None:
+					continue	
+				if title == None:
+					continue
+				rawtext = unicode(rawtext.string)
+				title = unicode(title.string.replace("/",""))
+				header = u'<doc title="%s">\n' % (title)
+				#print header
+				name = os.path.dirname(os.path.abspath(ip)) + "/pages/" + title + u".xml"
 				footer = u"\n</doc>\n"
-			#	cleantext = clean(rawtext)
-                		try:
-					#print rawtext
+				try:
 					cleantext = clean(rawtext)
-					#print ""
-					#print ""
-					#print ""
-					#print cleantext
+
 					dir = os.path.dirname(name)
 					if not os.path.exists(dir):
 						os.makedirs(dir)

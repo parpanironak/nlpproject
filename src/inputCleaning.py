@@ -28,9 +28,8 @@ def ipclean(inputfile):
     try:
         with open(inputfile, "r") as tf:
             for line in tf:
-                line = clean(line)
-                tokenized_text = tokenizer.tokenize(line)
-                print '\n=========================================\n'.join(tokenized_text)
+                print line      
+             
                 print '+++++++++++++++++++++++++++++++++++++++++'
     except IOError, e:
         sys.stderr.write(str(e) + '\n')

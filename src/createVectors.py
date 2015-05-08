@@ -12,7 +12,9 @@ reload(sys)
 sys.setdefaultencoding('utf8')
 
 
+from nltk.stem import PorterStemmer      
 
+stemmer = PorterStemmer()
 
 NLTK_DATA_DIR = "./nltk_data"
 TEST_FILE = '/home/rap450/nlp/shellscripts'
@@ -42,7 +44,7 @@ def removePunctuations(s):
     return s.translate(table, string.punctuation)
 
 def removeStopWords(text):
-	return ' '.join([word for word in text.split() if word not in cachedStopWords])
+	return ' '.join([stemmer.stem(word.lower()) for word in text.split() if stemmer.stem(word.lower()) not in cachedStopWords])
 
 def createCountMap(wordList):
     hmap = {};
@@ -76,10 +78,14 @@ def createTermFrequencyVector(tag, entity, odir):
 					tempList = re.split(pattern, entityFileLine)
 					for temp in tempList:
 						partialWordList = removeStopWords(removeUPunctuations(unicode(temp.strip().lower()))).split()
-						wordList = wordList + [x.lower() for x in partialWordList]
+						wordList = wordList + [x for x in partialWordList]
 		return createCountMap(wordList)
 
 	else:
+		print "None One"
+		print tag
+		print entity
+		print odir
 		return None
 
 
