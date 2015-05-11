@@ -7,7 +7,6 @@ import os.path
 
 try:
     import utils
-    from utils import Entity
     from tagger import extract_sentences_with_links
 except ImportError:
     sys.stderr.write("Error: missing files utils.py\n")
@@ -50,7 +49,7 @@ def extract(inputfile, tag, odir):
     utils.ensure_dir(dir_path)
 
     try:
-        outPutFile = open(outputFilePath, "w")
+        outPutFile = codecs.open(outputFilePath,'w', encoding='utf-8',errors='replace')
         for entity in entityCountMap:
             counts = entityCountMap[entity];
             outPutFile.write(entity + "\t" + str(counts[0]) + "\t" + str(counts[1]) + "\n")
@@ -64,7 +63,7 @@ def extract(inputfile, tag, odir):
         dir_path = os.path.dirname(outputFilePath)
         utils.ensure_dir(dir_path)
         try:
-            outPutFile = open(outputFilePath, "a")
+            outPutFile = codecs.open(outputFilePath, 'a', encoding='utf-8', errors='replace')
             outPutFile.write(tag + "\n")
             outPutFile.close()
         except IOError, e:

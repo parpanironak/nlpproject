@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 
-import os, sys, codecs, re
+import os, sys, codecs
 try:
     import config
 except ImportError:
@@ -33,10 +33,13 @@ class Entity:
     int self.count: number of times entity appears.
     str[] self.sentences: list of sentences in which entity appears."""
 
-    def __init__(self, tag_name, count = 0, sentences = []):
+    def __init__(self, tag_name, count = 0, sentences = None):
         self.tag_name = tag_name
         self.count = count
         self.sentences = sentences
+        if self.sentences == None:
+            self.sentences = []
+
     def increment(self, value = 1):
         self.count += value
     def __str__(self):
@@ -45,36 +48,24 @@ class Entity:
 
 def extract_sentences(filepath):
     """Uses NLTK module to segment text from file into english sentences.
-    Segmentation is only as good as what is provided by NLTK.
-    Text is also split along double-newlines to provide for titles/lists/other.
-    Returns empty list in case of error reading file.
+        Segmentation is only as good as what is provided by NLTK.
+        Text is also split along double-newlines to provide for titles/lists/other.
+        Returns empty list in case of error reading file.
 
-    str[] extract_sentences(str filepath)
-    str filepath: path to file to process.
-    return value: list of sentences in processed file.
+        str[] extract_sentences(str filepath)
+        str filepath: path to file to process.
+        return value: list of sentences in processed file.
 
-    IMPORTS: sys, nltk, config
-    GLOBAL CONSTANTS: config.NLTK_DATA_DIR"""
+        IMPORTS: sys, nltk, config, BeautifulSoup from bs4
+        GLOBAL CONSTANTS: config.NLTK_DATA_DIR"""
 
     try:
         nltk.data.find('tokenizers/punkt/english.pickle')
     except LookupError:
         nltk.download('punkt', download_dir = config.NLTK_DATA_DIR)
-#    xmldoc = []
-#    flag = True
-#    open_doc_tag = re.compile(r'<doc[^>]*>')
     try:
         with codecs.open(filepath,'r', encoding='utf-8', errors='replace') as document:
             xmldoc = BeautifulSoup(document).text
-#            for line in document:
-#                line = line.strip()
-#                if flag and (open_doc_tag.match(line) is not None):
-#                    flag = False
-#                elif not flag:
-#                    if line != "</doc>":
-#                        xmldoc.append(line)
-#                    else:
-#                        flag = True;
     except IOError, e:
         sys.stderr.write(str(e) + '\n')
         return []
